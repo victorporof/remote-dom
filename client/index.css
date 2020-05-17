@@ -1,0 +1,21 @@
+body {
+  margin: 0;
+}
+
+.content {
+  position: fixed;
+  border: none;
+  width: 100%;
+  height: 100%;
+}
+
+.spinner {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.spinner[hidden="true"] {
+  display: none;
+}

@@ -1,5 +1,5 @@
-import normalizeUrl from "normalize-url";
 import isReachable from "is-reachable";
+import normalizeUrl from "normalize-url";
 
 export const fixUrl = async (url) => {
   let fixed;

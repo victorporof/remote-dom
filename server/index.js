@@ -1,8 +1,8 @@
 import { promises as fs } from "fs";
-import path from "path";
-import url, { URL } from "url";
 import http from "http";
+import path from "path";
 import socketio from "socket.io";
+import url, { URL } from "url";
 
 import express from "express";
 import morgan from "morgan";
@@ -16,7 +16,7 @@ const dir = path.dirname(url.fileURLToPath(import.meta.url));
 const clientjs = fs.readFile(path.join(dir, "../dist/content/client/main.js"), "utf8");
 const serverjs = fs.readFile(path.join(dir, "../dist/content/server/main.js"), "utf8");
 
-const browser = puppeteer.launch({ headless: false });
+const browser = puppeteer.launch({ headless: true });
 const pages = new Map();
 
 const app = express();

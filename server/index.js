@@ -8,7 +8,6 @@ import express from "express";
 import morgan from "morgan";
 import puppeteer from "puppeteer";
 import shortid from "shortid";
-import expressWs from "express-ws";
 
 import * as Scripts from "../content/server/scripts.js";
 import * as Utils from "./utils.js";
@@ -24,8 +23,6 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio.listen(server);
 const port = 3000;
-
-expressWs(app);
 
 app.use(morgan("tiny"));
 

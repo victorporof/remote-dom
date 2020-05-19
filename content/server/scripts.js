@@ -3,6 +3,10 @@ export const getMetadata = () => {
 };
 
 export const renderClientHtml = (clientjs) => {
+  // This is hacky and incorrect for now.
+  // The generated HTML shouldn't be a stripped down version of the existing DOM,
+  // but this is good enough for the prototype.
+
   // Add a `remote-id` data attribute for all nodes on the client. Note that
   // the DOM won't be altered on the server.
   const originalNodes = document.documentElement.querySelectorAll("*");

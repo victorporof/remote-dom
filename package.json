@@ -17,7 +17,6 @@
     "lodash": "^4.17.15",
     "morgan": "^1.10.0",
     "normalize-url": "^5.0.0",
-    "optimal-select": "^4.0.1",
     "puppeteer": "^3.0.4",
     "puppeteer-firefox": "^0.5.1",
     "shortid": "^2.2.15",

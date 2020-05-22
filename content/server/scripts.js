@@ -49,17 +49,6 @@ export const renderClientHtml = (clientjs) => {
   const head = clone.querySelector("head");
   head.appendChild(script);
 
-  // Inject <base> for loading relative resources.
-  // This results in double fetching: once in the serving browser (server), and
-  // once on the receiving renderer (client). Better solutions involve:
-  // - basing on a proxy that lives on the server and has cached resources, or
-  // - retrieving the resources on demand from inside the browsing context
-  if (!clone.querySelector("base")) {
-    const base = document.createElement("base");
-    base.href = location.origin + location.pathname;
-    head.insertBefore(base, head.firstChild);
-  }
-
   // Some subresources might not be available due to CORS disputes, so they
   // should all be inlined or proxied. So far just handling styles seems to be
   // enough for a prototype, but a real solution would need superpowers which

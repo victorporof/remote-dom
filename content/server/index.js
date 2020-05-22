@@ -89,7 +89,11 @@ const onMutations = (mutationList) => {
 
   const mutations = mutationList.flatMap(handleMutation);
   if (mutations.length) {
-    window.$message({ type: "mutations", mutations });
+    try {
+      window.$message({ type: "mutations", mutations });
+    } catch (e) {
+      /* XXX: page.exposeFunction isn't available in Firefox so this will throw*/
+    }
   }
 };
 

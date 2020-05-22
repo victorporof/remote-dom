@@ -16,7 +16,12 @@ const dir = path.dirname(url.fileURLToPath(import.meta.url));
 const clientjs = fs.readFile(path.join(dir, "../dist/content/client/main.js"), "utf8");
 const serverjs = fs.readFile(path.join(dir, "../dist/content/server/main.js"), "utf8");
 
-const browser = puppeteer.launch({ headless: true });
+const browser = puppeteer.launch({
+  headless: false,
+  product: "firefox",
+  executablePath:
+    "/Users/bgrins/Code/mozilla-central/objdir.noindex/dist/Nightly.app/Contents/MacOS/firefox",
+});
 const pages = new Map();
 
 const app = express();
@@ -97,18 +102,28 @@ io.on("connection", (socket) => {
     if (!page) {
       return;
     }
-    let srcdoc = null;
+    let bakedDOM = null;
     try {
-      await page.exposeFunction("$message", (...args) => onMessage(socket, ...args));
+      // This is gross, but we took over page.cookies() to deliver
+      // the initial payload of the baked dom. There's probably also a way
+      // to not require a JSON.parse.
+      bakedDOM = (await page.cookies())[0];
+
+      // `exposeFunction` is not supported in Firefox:
+      // await page.exposeFunction("$message", (...args) => onMessage(socket, ...args));
+
+      // I don't know if we need to keep any of these:
+      /*
       await page.addScriptTag({ content: await serverjs });
       await page.evaluate(Scripts.registerNodes);
       srcdoc = await page.evaluate(Scripts.renderClientHtml, await clientjs);
       await page.evaluate(Scripts.registerMutationObserver);
+      */
     } catch (e) {
       console.error(e);
       return;
     }
-    socket.emit("page/rendered", { srcdoc });
+    socket.emit("page/rendered", { bakedDOM });
   });
 
   socket.on("page/resize", async (data) => {

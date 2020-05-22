@@ -35,41 +35,11 @@ const onRemotePageCreated = ({ title, url, ...page }) => {
   io.emit("page/render", { id });
 };
 
-const buildBakedDOM = function (doc, bakedDOM) {
-  function createElement(node) {
-    if (typeof node === "string") {
-      return doc.createTextNode(node);
-    }
-    const el = doc.createElement(node.tag);
-    for (let attr in node.attributes) {
-      el.setAttribute(attr, node.attributes[attr]);
-    }
-
-    node.children.map(createElement).forEach(el.appendChild.bind(el));
-    return el;
-  }
-  const docElemTree = bakedDOM;
-  location.origin + location.pathname;
-
-  doc.documentElement.innerHTML = "<head></head><body></body>";
-
-  const bodyTree = bakedDOM.children.filter((n) => n.tag == "body")[0];
-  const newBody = createElement(bodyTree);
-
-  // Don't replace the documentElement.. just set attrs
-  for (let attr in docElemTree.attributes) {
-    doc.documentElement.setAttribute(attr, docElemTree.attributes[attr]);
-  }
-  doc.documentElement.style.width = docElemTree.size.width;
-  doc.documentElement.style.height = docElemTree.size.height;
-  doc.body.parentNode.replaceChild(newBody, doc.body);
-};
-
 const onRemotePageRendered = ({ bakedDOM }) => {
   const content = document.querySelector(".content");
   const spinner = document.querySelector(".spinner");
   if (bakedDOM) {
-    buildBakedDOM(content.contentDocument, bakedDOM);
+    content.contentWindow.postMessage({ type: "bakedDOM", bakedDOM }, "*");
     spinner.setAttribute("hidden", "true");
   }
 };

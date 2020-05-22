@@ -7,8 +7,7 @@
   "scripts": {
     "bundle:client": "webpack client/index.js --output-path dist/client --mode development",
     "bundle:content:client": "webpack content/client/index.js --output-path dist/content/client --mode development",
-    "bundle:content:server": "webpack content/server/index.js --output-path dist/content/server --mode development",
-    "bundle": "yarn bundle:client && yarn bundle:content:client && yarn bundle:content:server",
+    "bundle": "yarn bundle:client && yarn bundle:content:client",
     "start": "yarn bundle && node server/index.js"
   },
   "dependencies": {

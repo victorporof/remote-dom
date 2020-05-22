@@ -53,15 +53,6 @@ const buildBakedDOM = function (doc, bakedDOM) {
 
   doc.documentElement.innerHTML = "<head></head><body></body>";
 
-  // Inject <base> for loading relative resources.
-  // This results in double fetching: once in the serving browser (server), and
-  // once on the receiving renderer (client). Better solutions involve:
-  // - basing on a proxy that lives on the server and has cached resources, or
-  // - retrieving the resources on demand from inside the browsing context
-  const base = doc.createElement("base");
-  base.href = docElemTree.base;
-  doc.head.append(base);
-
   const bodyTree = bakedDOM.children.filter((n) => n.tag == "body")[0];
   const newBody = createElement(bodyTree);
 

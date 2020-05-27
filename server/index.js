@@ -161,10 +161,7 @@ io.on("connection", (socket) => {
     const { type, ...message } = data.data;
     try {
       if (type == "click") {
-        // TODO: Add support to puppeteer to handle this instead of a
-        // selector.
-        // await page.click(`REMOTEID-${message.target}`);
-        await page.evaluate(Scripts.simulateClick, message);
+        await messageToAgent(page, "agentClick", message);
       }
     } catch (e) {
       console.error(e);

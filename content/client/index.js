@@ -99,10 +99,10 @@ const registerNode = (id, node) => {
 function updateElement(el, bakedNode) {
   // First remove attributes. XXX This could be optimized by doing
   // a diff of the previous bakedNode (if any) and the one passed in here.
-  for (let attr in el.attributes) {
+  for (const attr in el.attributes) {
     el.removeAttribute(attr);
   }
-  for (let attr in bakedNode.attributes) {
+  for (const attr in bakedNode.attributes) {
     el.setAttribute(attr, bakedNode.attributes[attr]);
   }
   // Stick the ID on the DOM for easier debugging:
@@ -111,7 +111,7 @@ function updateElement(el, bakedNode) {
 
 function createElement(bakedNode) {
   if (bakedNode.nodeType == 3) {
-    let node = document.createTextNode(bakedNode.data);
+    const node = document.createTextNode(bakedNode.data);
     registerNode(bakedNode.id, node);
     return node;
   }

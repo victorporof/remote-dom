@@ -17,6 +17,11 @@ const dir = path.dirname(url.fileURLToPath(import.meta.url));
 const browser = puppeteer.launch({
   headless: false,
   product: "firefox",
+
+  // Options to improve debugging changes to firefox:
+  args: ["--jsconsole"],
+  dumpio: true,
+
   executablePath:
     "/Users/bgrins/Code/mozilla-central/objdir.noindex/dist/Nightly.app/Contents/MacOS/firefox",
 });
@@ -54,13 +59,28 @@ app.get("*", async (req, res) => {
   }
 });
 
-const onMessage = (socket, { type, ...message }) => {
-  if (type == "mutations") {
-    onMutations(socket, message);
+const onMessageFromAgent = (socket, { overriddenType, data }) => {
+  if (overriddenType == "mutations") {
+    socket.emit("page/mutated", { mutations: data });
   }
+  // Add more handlers here (focus changed, value changed, scroll changed, etc)
 };
-const onMutations = (socket, { mutations }) => {
-  socket.emit("page/mutated", { mutations });
+
+/*
+  This is gross, but we took over page.cookies() to message to the
+  agent.
+
+  You can add a new message like:
+
+  await messageToAgent(page, "click", {
+  remoteID: 1234
+  });
+
+  And then handle it over in Network.jsm in the patch at https://github.com/bgrins/firefox-patches/blob/master/remote-changes
+*/
+const messageToAgent = async (page, messageName, data) => {
+  const result = await page.cookies(messageName, data);
+  return result[0];
 };
 
 io.on("connection", (socket) => {
@@ -70,17 +90,16 @@ io.on("connection", (socket) => {
     let meta = null;
     try {
       page = await (await browser).newPage();
+
       page.on("dialog", (dialog) => {
         // We are "borrowing" this event for our own purposes
-        if (dialog.type() == "beforeunload") {
-          onMutations(socket, {
-            mutations: dialog.message(),
-          });
+        if (dialog.type() == "beforeunload" && dialog.message().overriddenType) {
+          onMessageFromAgent(socket, dialog.message());
         } else {
+          // We should actually forward the dialog to the client
           dialog.dismiss();
         }
       });
-      // page.on("dialog", (dialog) => dialog.dismiss());
       await page.setViewport({ width: data.width, height: data.height });
       await page.goto(data.url, { waitUntil: "load" });
       meta = await page.evaluate(Scripts.getMetadata);
@@ -113,15 +132,12 @@ io.on("connection", (socket) => {
     }
     let bakedDOM = null;
     try {
-      // This is gross, but we took over page.cookies() to deliver
-      // the initial payload of the baked dom. There's probably also a way
-      // to not require a JSON.parse.
-      bakedDOM = (await page.cookies())[0];
+      bakedDOM = await messageToAgent(page, "bakedDOM");
     } catch (e) {
       console.error(e);
       return;
     }
-    socket.emit("page/rendered", { bakedDOM });
+    socket.emit("page/rendered", { bakedDOM: bakedDOM });
   });
 
   socket.on("page/resize", async (data) => {

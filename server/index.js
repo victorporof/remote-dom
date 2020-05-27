@@ -166,7 +166,7 @@ io.on("connection", (socket) => {
     console.log(is, message);
     try {
       if (is == "mouse") {
-        await messageToAgent(page, "agentClick", message); // TODO: change to `agentMouse`
+        await messageToAgent(page, "agentMouse", message);
       } else if (is == "key") {
         await messageToAgent(page, "agentKey", message);
       }

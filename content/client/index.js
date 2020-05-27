@@ -96,20 +96,22 @@ const registerNode = (id, node) => {
   return id;
 };
 
-function updateElement(el, bakedNode) {
+const updateElement = (el, bakedNode) => {
   // First remove attributes. XXX This could be optimized by doing
   // a diff of the previous bakedNode (if any) and the one passed in here.
+  // eslint-disable-next-line guard-for-in
   for (const attr in el.attributes) {
     el.removeAttribute(attr);
   }
+  // eslint-disable-next-line guard-for-in
   for (const attr in bakedNode.attributes) {
     el.setAttribute(attr, bakedNode.attributes[attr]);
   }
   // Stick the ID on the DOM for easier debugging:
   el.dataset.remoteId = bakedNode.id;
-}
+};
 
-function createElement(bakedNode) {
+const createElement = (bakedNode) => {
   if (bakedNode.nodeType == 3) {
     const node = document.createTextNode(bakedNode.data);
     registerNode(bakedNode.id, node);
@@ -121,7 +123,7 @@ function createElement(bakedNode) {
 
   bakedNode.children.map(createElement).forEach(el.appendChild.bind(el));
   return el;
-}
+};
 
 const buildBakedDOM = function ({ bakedDOM }) {
   const docElemTree = bakedDOM;

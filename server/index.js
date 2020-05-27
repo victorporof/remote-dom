@@ -50,6 +50,9 @@ app.get("/favicon.ico", (req, res) => {
 
 app.get("*", async (req, res) => {
   const url = req.url.slice(1);
+  if (!url) {
+    res.redirect("/localhost:3001");
+  }
   const fixed = await Utils.fixUrl(url);
   if (url != fixed) {
     res.redirect(`/${fixed}`);

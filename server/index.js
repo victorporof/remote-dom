@@ -86,7 +86,7 @@ const messageToAgent = async (page, messageName, data) => {
 };
 
 io.on("connection", (socket) => {
-  socket.on("page/create", async (data) => {
+  socket.on("page/create", async ({ width, height, url }) => {
     const id = shortid.generate();
     let page = null;
     let meta = null;
@@ -102,8 +102,8 @@ io.on("connection", (socket) => {
           dialog.dismiss();
         }
       });
-      await page.setViewport({ width: data.width, height: data.height });
-      await page.goto(data.url, { waitUntil: "load" });
+      await page.setViewport({ width, height });
+      await page.goto(url, { waitUntil: "load" });
       meta = await page.evaluate(Scripts.getMetadata);
     } catch (e) {
       console.error(e);
@@ -113,8 +113,8 @@ io.on("connection", (socket) => {
     socket.emit("page/created", { id, ...meta });
   });
 
-  socket.on("page/delete", async (data) => {
-    const page = pages.get(data.id);
+  socket.on("page/delete", async ({ id }) => {
+    const page = pages.get(id);
     if (!page) {
       return;
     }
@@ -124,11 +124,11 @@ io.on("connection", (socket) => {
       console.error(e);
       return;
     }
-    pages.delete(data.id);
+    pages.delete(id);
   });
 
-  socket.on("page/render", async (data) => {
-    const page = pages.get(data.id);
+  socket.on("page/render", async ({ id }) => {
+    const page = pages.get(id);
     if (!page) {
       return;
     }
@@ -142,28 +142,30 @@ io.on("connection", (socket) => {
     socket.emit("page/rendered", { bakedDOM: bakedDOM });
   });
 
-  socket.on("page/resize", async (data) => {
-    const page = pages.get(data.id);
+  socket.on("page/resize", async ({ id, width, height }) => {
+    const page = pages.get(id);
     if (!page) {
       return;
     }
     try {
-      await page.setViewport({ width: data.width, height: data.height });
+      await page.setViewport({ width, height });
     } catch (e) {
       console.error(e);
       return;
     }
   });
 
-  socket.on("page/message", async (data) => {
-    const page = pages.get(data.id);
+  socket.on("page/message", async ({ id, data: { is, ...message } }) => {
+    const page = pages.get(id);
     if (!page) {
       return;
     }
-    const { type, ...message } = data.data;
+    console.log(is, message);
     try {
-      if (type == "click") {
-        await messageToAgent(page, "agentClick", message);
+      if (is == "mouse") {
+        await messageToAgent(page, "agentClick", message); // TODO: change to `agentMouse`
+      } else if (is == "key") {
+        await messageToAgent(page, "agentKey", message);
       }
     } catch (e) {
       console.error(e);

@@ -3,6 +3,29 @@ import pick from "lodash/pick";
 const $idsToNodes = new Map();
 const $nodesToIds = new WeakMap();
 
+const MOUSE_EVENT_PROPS = [
+  "clientX",
+  "clientY",
+  "ctrlKey",
+  "shiftKey",
+  "altKey",
+  "metaKey",
+  "button",
+  "buttons",
+];
+
+const KEY_EVENT_PROPS = [
+  "key",
+  "code",
+  "location",
+  "ctrlKey",
+  "shiftKey",
+  "altKey",
+  "metaKey",
+  "repeat",
+  "isComposing",
+];
+
 const onSubmit = (e) => {
   // Prevent submit on forms.
   e.preventDefault();
@@ -11,13 +34,20 @@ const onSubmit = (e) => {
 const onClick = (e) => {
   // Prevent click and enter key on links.
   e.preventDefault();
+  onMouseEvent(e);
+};
 
-  // Synthesize click event on the server, on any type of element.
+const onMouseEvent = (e) => {
   const target = e.target.dataset.remoteId;
   const relatedTarget = e.relatedTarget ? e.relatedTarget.dataset.remoteId : null;
-  const position = pick(e, ["clientX", "clientY"]);
-  const meta = pick(e, ["ctrlKey", "shiftKey", "altKey", "metaKey", "button", "buttons"]);
-  parent.postMessage({ type: "click", target, relatedTarget, ...position, ...meta }, "*");
+  const meta = pick(e, MOUSE_EVENT_PROPS);
+  parent.postMessage({ is: "mouse", type: e.type, target, relatedTarget, ...meta }, "*");
+};
+
+const onKeyEvent = (e) => {
+  const target = e.target.dataset.remoteId;
+  const meta = pick(e, KEY_EVENT_PROPS);
+  parent.postMessage({ is: "key", type: e.type, target, ...meta }, "*");
 };
 
 const onMessage = ({ data: { type, ...message } }) => {
@@ -141,4 +171,11 @@ const buildBakedDOM = function ({ bakedDOM }) {
 
 document.documentElement.addEventListener("submit", onSubmit, true);
 document.documentElement.addEventListener("click", onClick, true);
+document.documentElement.addEventListener("dblclick", onMouseEvent, true);
+document.documentElement.addEventListener("mousedown", onMouseEvent, true);
+document.documentElement.addEventListener("mouseup", onMouseEvent, true);
+document.documentElement.addEventListener("mousemove", onMouseEvent, true);
+document.documentElement.addEventListener("keydown", onKeyEvent, true);
+document.documentElement.addEventListener("keyup", onKeyEvent, true);
+
 window.addEventListener("message", onMessage);

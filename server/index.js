@@ -33,9 +33,9 @@ const port = 3000;
 
 app.use(morgan("tiny"));
 
-app.use("/static", express.static("client"));
-app.use("/dist/client", express.static("dist/client"));
-app.use("/dist/content", express.static("dist/content"));
+app.use("/client", express.static("client"));
+app.use("/content", express.static("content"));
+app.use("/dist", express.static("dist"));
 
 app.get("/favicon.ico", (req, res) => {
   let url;

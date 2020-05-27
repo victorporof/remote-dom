@@ -52,6 +52,7 @@ app.get("*", async (req, res) => {
   const url = req.url.slice(1);
   if (!url) {
     res.redirect("/localhost:3001");
+    return;
   }
   const fixed = await Utils.fixUrl(url);
   if (url != fixed) {

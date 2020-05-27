@@ -107,6 +107,12 @@ io.on("connection", (socket) => {
       });
       await page.setViewport({ width, height });
       await page.goto(url, { waitUntil: "load" });
+
+      page.on("domcontentloaded", async () => {
+        const meta = await page.evaluate(Scripts.getMetadata);
+        socket.emit("page/navigated", { ...meta });
+      });
+
       meta = await page.evaluate(Scripts.getMetadata);
     } catch (e) {
       console.error(e);

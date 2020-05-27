@@ -49,6 +49,10 @@ const onRemotePageMutated = ({ mutations }) => {
   content.contentWindow.postMessage({ type: "mutations", mutations }, "*");
 };
 
+const onRemotePageNavigated = ({ title, url }) => {
+  set({ title, url });
+};
+
 window.addEventListener("resize", onContentResize);
 window.addEventListener("unload", onContentUnload);
 window.addEventListener("message", onContentMessage);
@@ -57,5 +61,6 @@ const io = socketio.connect(`ws://${location.host}`);
 io.on("page/created", onRemotePageCreated);
 io.on("page/rendered", onRemotePageRendered);
 io.on("page/mutated", onRemotePageMutated);
+io.on("page/navigated", onRemotePageNavigated);
 
 create();

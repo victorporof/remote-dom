@@ -77,13 +77,21 @@ const handleAddedNodes = (target, { added }) => {
     if ($nodesToIds.has(virtualNode.id)) {
       console.error(`Existing node attempted to be added with id ${virtualNode.id}`);
     }
-    createElement(virtualNode);
+    const parent = $idsToNodes.get(virtualNode.parentID);
+    if (!parent) {
+      console.error(
+        `Missing parent on add (nodeID=${virtualNode.id}, parentID=${virtualNode.parentID}`
+      );
+    }
+    console.log(parent, createElement(virtualNode))
+    // XXX: Pass along sibling to properly order
+    parent.append(createElement(virtualNode));
   }
 };
 
 const handleRemovedNodes = ({ removed }) => {
   for (const { id } of removed) {
-    const node = $nodesToIds.get(id);
+    const node = $idsToNodes.get(id);
     if (!node) {
       console.error(`No node to remove at id ${id}`);
     } else {

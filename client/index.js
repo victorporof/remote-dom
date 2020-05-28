@@ -29,9 +29,8 @@ const onContentMessage = ({ data }) => {
   io.emit("page/message", { id, data });
 };
 
-const onRemotePageCreated = ({ title, url, ...page }) => {
+const onRemotePageCreated = (page) => {
   id = page.id;
-  set({ title, url });
   io.emit("page/render", { id });
 };
 

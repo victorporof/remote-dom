@@ -80,10 +80,12 @@ io.on("connection", (socket) => {
   socket.on("page/create", async ({ width, height, url }) => {
     const id = shortid.generate();
     let page = null;
-    let meta = null;
     try {
       page = await (await browser).newPage();
-
+      page.on("domcontentloaded", async () => {
+        const meta = await page.evaluate(Scripts.getMetadata);
+        socket.emit("page/navigated", { ...meta });
+      });
       page.on("dialog", (dialog) => {
         // We are "borrowing" this event for our own purposes
         if (dialog.type() == "beforeunload" && dialog.message().overriddenType) {
@@ -95,19 +97,12 @@ io.on("connection", (socket) => {
       });
       await page.setViewport({ width, height });
       await page.goto(url, { waitUntil: "load" });
-
-      page.on("domcontentloaded", async () => {
-        const meta = await page.evaluate(Scripts.getMetadata);
-        socket.emit("page/navigated", { ...meta });
-      });
-
-      meta = await page.evaluate(Scripts.getMetadata);
     } catch (e) {
       console.error(e);
       return;
     }
     pages.set(id, page);
-    socket.emit("page/created", { id, ...meta });
+    socket.emit("page/created", { id });
   });
 
   socket.on("page/delete", async ({ id }) => {

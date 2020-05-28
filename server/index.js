@@ -108,6 +108,7 @@ io.on("connection", (socket) => {
   socket.on("page/delete", async ({ id }) => {
     const page = pages.get(id);
     if (!page) {
+      console.error(`No page to remove with id ${id}`);
       return;
     }
     try {
@@ -122,6 +123,7 @@ io.on("connection", (socket) => {
   socket.on("page/render", async ({ id }) => {
     const page = pages.get(id);
     if (!page) {
+      console.error(`No page to render with id ${id}`);
       return;
     }
     let bakedDOM = null;
@@ -137,6 +139,7 @@ io.on("connection", (socket) => {
   socket.on("page/resize", async ({ id, width, height }) => {
     const page = pages.get(id);
     if (!page) {
+      console.error(`No page to resize with id ${id}`);
       return;
     }
     try {
@@ -150,6 +153,7 @@ io.on("connection", (socket) => {
   socket.on("page/message", async ({ id, data: { is, ...message } }) => {
     const page = pages.get(id);
     if (!page) {
+      console.error(`No page to message with id ${id}`);
       return;
     }
     try {

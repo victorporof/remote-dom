@@ -71,18 +71,6 @@ const onMessageFromAgent = (socket, { overriddenType, data }) => {
   // Add more handlers here (focus changed, value changed, scroll changed, etc)
 };
 
-/*
-  This is gross, but we took over page.cookies() to message to the
-  agent.
-
-  You can add a new message like:
-
-  await messageToAgent(page, "click", {
-  remoteID: 1234
-  });
-
-  And then handle it over in Network.jsm in the patch at https://github.com/bgrins/firefox-patches/blob/master/remote-changes
-*/
 const messageToAgent = async (page, messageName, data) => {
   const result = await page.cookies(messageName, data);
   return result[0];
@@ -148,7 +136,7 @@ io.on("connection", (socket) => {
       console.error(e);
       return;
     }
-    socket.emit("page/rendered", { bakedDOM: bakedDOM });
+    socket.emit("page/rendered", { bakedDOM });
   });
 
   socket.on("page/resize", async ({ id, width, height }) => {
@@ -169,7 +157,6 @@ io.on("connection", (socket) => {
     if (!page) {
       return;
     }
-    console.log(is, message);
     try {
       if (is == "mouse") {
         await messageToAgent(page, "agentMouse", message);

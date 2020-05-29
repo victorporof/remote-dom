@@ -10,6 +10,7 @@ import shortid from "shortid";
 
 import * as Scripts from "../content/server/scripts.js";
 import * as Utils from "./utils.js";
+import config from "../config.js";
 
 const dir = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -17,13 +18,13 @@ const browser = puppeteer.launch({
   headless: false,
   product: "firefox",
 
-  // Options to improve debugging changes to firefox:
-  args: ["--jsconsole"],
-  dumpio: true,
-
-  executablePath:
-    "/Users/bgrins/Code/mozilla-central/objdir.noindex/dist/Nightly.app/Contents/MacOS/firefox",
+  // Copy config.example.js to config.js to make changes to
+  // your local environment
+  args: config.puppeteer.args || [],
+  dumpio: config.puppeteer.dumpio || false,
+  executablePath: config.puppeteer.executablePath,
 });
+
 const pages = new Map();
 
 const app = express();

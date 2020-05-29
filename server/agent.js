@@ -84,6 +84,15 @@ export const createPage = async (socket, { width, height, url }) => {
   socket.emit("page/created", { id });
 };
 
+export const navigatePage = async (socket, { id, url }) => {
+  const page = pages.get(id);
+  if (!page) {
+    console.error(`No page to navigate with id ${id}`);
+    return;
+  }
+  await page.goto(url, { waitUntil: "load" });
+};
+
 export const deletePage = async (socket, { id }) => {
   const page = pages.get(id);
   if (!page) {

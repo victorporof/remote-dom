@@ -4,9 +4,19 @@ let id = null;
 
 const set = ({ title, url }) => {
   document.title = title;
-  history.pushState(null, title, `/${url}`);
+  const pathname = `/${url}`;
+  if (pathname !== window.location.pathname) {
+    history.pushState(null, title, pathname);
+  }
   const icon = document.querySelector("link[rel=icon]");
   icon.href = `/favicon.ico?url=${url}`;
+};
+
+window.onpopstate = function (event) {
+  // From http://localhost:3000/http://localhost:3001/
+  // get "http://localhost:3001/":
+  const url = window.location.pathname.split("/").slice(1).join("/");
+  io.emit("page/navigate", { id, url });
 };
 
 const create = () => {

@@ -1,51 +1,11 @@
 import http from "http";
-import path from "path";
 import socketio from "socket.io";
-import url, { URL } from "url";
 
 import express from "express";
 import morgan from "morgan";
-import puppeteer from "puppeteer";
-import shortid from "shortid";
 
-import * as Scripts from "../content/server/scripts.js";
-import * as Utils from "./utils.js";
-import config from "../config.js";
-
-const dir = path.dirname(url.fileURLToPath(import.meta.url));
-
-const openBrowser = async () => {
-  const browser = await puppeteer.launch({
-    headless: false,
-    product: "firefox",
-
-    // Copy config.example.js to config.js to make changes to
-    // your local environment
-    args: config.puppeteer.args || [],
-    dumpio: config.puppeteer.dumpio || false,
-    executablePath: config.puppeteer.executablePath,
-  });
-
-  // TODO: Handle lifecycle events
-  browser.on("disconnected", (e) => {
-    console.log("puppeteer disconnected");
-  });
-  browser.on("targetchanged", (e) => {
-    console.log("puppeteer targetchanged");
-  });
-  browser.on("targetcreated", (e) => {
-    console.log("puppeteer targetcreated");
-  });
-  browser.on("targetdestroyed", (e) => {
-    console.log("puppeteer targetdestroyed");
-  });
-
-  return browser;
-};
-
-const browser = openBrowser();
-
-const pages = new Map();
+import * as Agent from "./agent.js";
+import * as Routes from "./routes.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -58,140 +18,15 @@ app.use("/client", express.static("client"));
 app.use("/content", express.static("content"));
 app.use("/dist", express.static("dist"));
 
-app.get("/favicon.ico", (req, res) => {
-  let url;
-  try {
-    url = new URL(req.query.url);
-  } catch (e) {
-    res.sendStatus(400);
-    return;
-  }
-  res.redirect(`${url.origin}/favicon.ico`);
-});
-
-app.get("*", async (req, res) => {
-  const url = req.url.slice(1);
-  if (!url) {
-    res.redirect("/localhost:3001");
-    return;
-  }
-  const fixed = await Utils.fixUrl(url);
-  if (url != fixed) {
-    res.redirect(`/${fixed}`);
-  } else {
-    res.sendFile(path.join(dir, "../client/index.html"));
-  }
-});
-
-const onMessageFromAgent = (socket, { overriddenType, data }) => {
-  if (overriddenType == "mutations") {
-    socket.emit("page/mutated", { mutations: data });
-  } else if (overriddenType == "events") {
-    socket.emit("page/evented", { events: data });
-  } else if (overriddenType == "bakedDOM") {
-    socket.emit("page/rendered", { bakedDOM: data });
-  }
-  // Add more handlers here (focus changed, value changed, scroll changed, etc)
-};
-
-const messageToAgent = async (page, messageName, data) => {
-  const result = await page.cookies(messageName, data);
-  return result[0];
-};
+app.get("/favicon.ico", Routes.favicon);
+app.get("*", Routes.index);
 
 io.on("connection", (socket) => {
-  socket.on("page/create", async ({ width, height, url }) => {
-    const id = shortid.generate();
-    let page = null;
-    try {
-      page = await (await browser).newPage();
-      page.on("domcontentloaded", async () => {
-        const meta = await page.evaluate(Scripts.getMetadata);
-        socket.emit("page/navigated", { ...meta });
-      });
-      page.on("dialog", (dialog) => {
-        // We are "borrowing" this event for our own purposes
-        if (dialog.type() == "beforeunload" && dialog.message().overriddenType) {
-          onMessageFromAgent(socket, dialog.message());
-        } else {
-          // We should actually forward the dialog to the client
-          dialog.dismiss();
-        }
-      });
-      await page.setViewport({ width, height });
-      await page.goto(url, { waitUntil: "load" });
-    } catch (e) {
-      console.error(e);
-      return;
-    }
-    pages.set(id, page);
-    socket.emit("page/created", { id });
-  });
-
-  socket.on("page/delete", async ({ id }) => {
-    const page = pages.get(id);
-    if (!page) {
-      console.error(`No page to remove with id ${id}`);
-      return;
-    }
-    try {
-      await page.close();
-    } catch (e) {
-      console.error(e);
-      return;
-    }
-    pages.delete(id);
-  });
-
-  socket.on("page/render", async ({ id }) => {
-    const page = pages.get(id);
-    if (!page) {
-      console.error(`No page to render with id ${id}`);
-      return;
-    }
-    let bakedDOM = null;
-    try {
-      bakedDOM = await messageToAgent(page, "bakedDOM");
-    } catch (e) {
-      console.error(e);
-      return;
-    }
-    socket.emit("page/rendered", { bakedDOM });
-  });
-
-  socket.on("page/resize", async ({ id, width, height }) => {
-    const page = pages.get(id);
-    if (!page) {
-      console.error(`No page to resize with id ${id}`);
-      return;
-    }
-    try {
-      await page.setViewport({ width, height });
-    } catch (e) {
-      console.error(e);
-      return;
-    }
-  });
-
-  socket.on("page/message", async ({ id, data: { is, ...message } }) => {
-    const page = pages.get(id);
-    if (!page) {
-      console.error(`No page to message with id ${id}`);
-      return;
-    }
-    try {
-      if (is == "mouse") {
-        await messageToAgent(page, "agentMouse", message);
-      } else if (is == "key") {
-        await messageToAgent(page, "agentKey", message);
-      } else if (is == "scroll") {
-        await messageToAgent(page, "agentScroll", message);
-      }
-    } catch (e) {
-      console.error(e);
-      return;
-    }
-  });
+  socket.on("page/create", (...args) => Agent.createPage(socket, ...args));
+  socket.on("page/delete", (...args) => Agent.deletePage(socket, ...args));
+  socket.on("page/render", (...args) => Agent.renderPage(socket, ...args));
+  socket.on("page/resize", (...args) => Agent.resizePage(socket, ...args));
+  socket.on("page/message", (...args) => Agent.messagePage(socket, ...args));
 });
 
 server.listen(port, () => console.log(`Listening at http://localhost:${port}`));

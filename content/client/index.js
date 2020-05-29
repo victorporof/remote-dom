@@ -38,14 +38,14 @@ const onClick = (e) => {
 };
 
 const onMouseEvent = (e) => {
-  const target = e.target.dataset.remoteId;
-  const relatedTarget = e.relatedTarget ? e.relatedTarget.dataset.remoteId : null;
+  const target = $nodesToIds.get(e.target);
+  const relatedTarget = $nodesToIds.get(e.relatedTarget);
   const meta = pick(e, MOUSE_EVENT_PROPS);
   parent.postMessage({ is: "mouse", type: e.type, target, relatedTarget, ...meta }, "*");
 };
 
 const onKeyEvent = (e) => {
-  const target = e.target.dataset.remoteId;
+  const target = $nodesToIds.get(e.target);
   const meta = pick(e, KEY_EVENT_PROPS);
   parent.postMessage({ is: "key", type: e.type, target, ...meta }, "*");
 };

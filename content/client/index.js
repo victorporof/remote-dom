@@ -171,7 +171,7 @@ const handleAddedNodes = ({ added, target: { id } }) => {
 
   for (const virtualNode of added) {
     if ($nodesToIds.has(virtualNode.id)) {
-      console.error(`Existing node attempted to be added with id ${virtualNode.id}`);
+      console.log(`Existing node attempted to be added with id ${virtualNode.id}.`);
     }
     const parent = $idsToNodes.get(virtualNode.parentID);
     if (!parent) {
@@ -180,7 +180,7 @@ const handleAddedNodes = ({ added, target: { id } }) => {
       );
     }
     // XXX: Pass along sibling to properly order
-    parent.append(createElement(virtualNode));
+    parent.append(createElementIfNeeded(virtualNode));
   }
 };
 
@@ -254,7 +254,10 @@ const updateElement = (el, bakedNode) => {
   el.dataset.remoteId = bakedNode.id;
 };
 
-const createElement = (bakedNode) => {
+const createElementIfNeeded = (bakedNode) => {
+  if ($idsToNodes.has(bakedNode.id)) {
+    return $idsToNodes.get(bakedNode.id);
+  }
   if (bakedNode.nodeType == 3) {
     const node = document.createTextNode(bakedNode.data);
     registerNode(bakedNode.id, node);
@@ -264,14 +267,14 @@ const createElement = (bakedNode) => {
   updateElement(el, bakedNode);
   registerNode(bakedNode.id, el);
 
-  bakedNode.children.map(createElement).forEach(el.appendChild.bind(el));
+  bakedNode.children.map(createElementIfNeeded).forEach(el.appendChild.bind(el));
   return el;
 };
 
 const buildBakedDOM = function ({ bakedDOM }) {
   const docElemTree = bakedDOM;
   const bodyTree = bakedDOM.children.filter((n) => n.tag == "body")[0];
-  const newBody = createElement(bodyTree);
+  const newBody = createElementIfNeeded(bodyTree);
 
   // Don't replace the documentElement.. just set attrs
   updateElement(document.documentElement, docElemTree);

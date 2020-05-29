@@ -14,16 +14,36 @@ import config from "../config.js";
 
 const dir = path.dirname(url.fileURLToPath(import.meta.url));
 
-const browser = puppeteer.launch({
-  headless: false,
-  product: "firefox",
+const openBrowser = async () => {
+  const browser = await puppeteer.launch({
+    headless: false,
+    product: "firefox",
 
-  // Copy config.example.js to config.js to make changes to
-  // your local environment
-  args: config.puppeteer.args || [],
-  dumpio: config.puppeteer.dumpio || false,
-  executablePath: config.puppeteer.executablePath,
-});
+    // Copy config.example.js to config.js to make changes to
+    // your local environment
+    args: config.puppeteer.args || [],
+    dumpio: config.puppeteer.dumpio || false,
+    executablePath: config.puppeteer.executablePath,
+  });
+
+  // TODO: Handle lifecycle events
+  browser.on("disconnected", (e) => {
+    console.log("puppeteer disconnected");
+  });
+  browser.on("targetchanged", (e) => {
+    console.log("puppeteer targetchanged");
+  });
+  browser.on("targetcreated", (e) => {
+    console.log("puppeteer targetcreated");
+  });
+  browser.on("targetdestroyed", (e) => {
+    console.log("puppeteer targetdestroyed");
+  });
+
+  return browser;
+};
+
+const browser = openBrowser();
 
 const pages = new Map();
 

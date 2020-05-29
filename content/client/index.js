@@ -112,19 +112,19 @@ const onEvents = ({ events }) => {
 
 const onMutations = ({ mutations }) => {
   for (const mutation of mutations) {
-    const target = $idsToNodes.get(mutation.target.id);
-    if (!target) {
-      console.error(`No existing node for ${mutation.target.id}`, mutation);
-    } else {
-      handleAddedNodes(target, mutation);
-      handleRemovedNodes(mutation);
-      handleCharacterDataChanged(mutation);
-      handleUpdates(target, mutation);
-    }
+    handleAddedNodes(mutation);
+    handleRemovedNodes(mutation);
+    handleCharacterDataChanged(mutation);
+    handleUpdates(mutation);
   }
 };
 
-const handleAddedNodes = (target, { added }) => {
+const handleAddedNodes = ({ added, target: { id } }) => {
+  const target = $idsToNodes.get(id);
+  if (!target) {
+    console.error(`No existing node for ${id}`);
+  }
+
   for (const virtualNode of added) {
     if ($nodesToIds.has(virtualNode.id)) {
       console.error(`Existing node attempted to be added with id ${virtualNode.id}`);
@@ -160,7 +160,11 @@ const handleCharacterDataChanged = ({ wrote }) => {
   }
 };
 
-const handleUpdates = (target, { updates }) => {
+const handleUpdates = ({ updates, target: { id } }) => {
+  const target = $idsToNodes.get(id);
+  if (!target) {
+    console.error(`No existing node for ${id}`);
+  }
   // When an attribute or something else changes that affects
   // the semantics or layout of a node, we want to do a shallow update
   // of it (don't recreate children).

@@ -279,6 +279,7 @@ const buildBakedDOM = function ({ bakedDOM }) {
   // sync this, but I wouldn't be surprised if we do for some reason ultimately.
   // document.documentElement.style.width = docElemTree.size.width;
   // document.documentElement.style.height = docElemTree.size.height;
+  window.scrollTo(0, 0);
   document.body.parentNode.replaceChild(newBody, document.body);
 };
 

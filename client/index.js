@@ -4,12 +4,10 @@ let id = null;
 
 const set = ({ title, url }) => {
   document.title = title;
-  const pathname = `/${url}`;
-  if (
-    pathname !== window.location.pathname &&
-    pathname !== `${window.location.pathname}/`
-  ) {
-    history.pushState(null, title, pathname);
+  const path = `/${url}`;
+  const currentPath = `${window.location.pathname}${window.location.search}`;
+  if (path !== currentPath && path !== `${currentPath}/`) {
+    history.pushState(null, title, path);
   }
   const icon = document.querySelector("link[rel=icon]");
   icon.href = `/favicon.ico?url=${url}`;
@@ -18,7 +16,8 @@ const set = ({ title, url }) => {
 window.onpopstate = function (event) {
   // From http://localhost:3000/http://localhost:3001/
   // get "http://localhost:3001/":
-  const url = window.location.pathname.split("/").slice(1).join("/");
+  const pathname = window.location.pathname.split("/").slice(1).join("/");
+  const url = `${pathname}${window.location.search}`;
   io.emit("page/navigate", { id, url });
 };
 

@@ -5,7 +5,10 @@ let id = null;
 const set = ({ title, url }) => {
   document.title = title;
   const pathname = `/${url}`;
-  if (pathname !== window.location.pathname) {
+  if (
+    pathname !== window.location.pathname &&
+    pathname !== `${window.location.pathname}/`
+  ) {
     history.pushState(null, title, pathname);
   }
   const icon = document.querySelector("link[rel=icon]");

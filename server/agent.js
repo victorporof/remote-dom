@@ -32,16 +32,34 @@ const openBrowser = async () => {
 
 const browser = openBrowser();
 const pages = new Map();
+const dialogs = new WeakMap();
 
-const onPageNavigated = async (socket, { page }) => {
+const onPageNavigatedFromAgent = async (socket, { page }) => {
   const meta = await page.evaluate(Scripts.getMetadata);
   socket.emit("page/navigated", { ...meta });
 };
 
-const onPageDialog = (socket, { dialog }) => {
+const onPageDialogedFromAgent = (socket, { page, dialog }) => {
   const type = dialog.type();
   const message = dialog.message();
-  socket.emit("page/dialoged", { type, message });
+  socket.emit("page/dialoged", { dialog: { type, message } });
+  dialogs.set(page, dialog);
+};
+
+const onPageDialogedFromClient = ({ page, message }) => {
+  const target = dialogs.get(page);
+  if (message.type == "alert") {
+    target.dismiss();
+  } else if (message.type == "confirm" && message.value == true) {
+    target.accept();
+  } else if (message.type == "confirm" && message.value == false) {
+    target.dismiss();
+  } else if (message.type == "prompt") {
+    target.accept(message.value);
+  } else if (message.type == "beforeunload") {
+    // TODO
+  }
+  dialogs.delete(page);
 };
 
 const onMessageFromAgent = (socket, { overriddenType, data }) => {
@@ -65,13 +83,13 @@ export const createPage = async (socket, { width, height, url }) => {
   try {
     page = await (await browser).newPage();
     page.on("domcontentloaded", () => {
-      onPageNavigated(socket, { page });
+      onPageNavigatedFromAgent(socket, { page });
     });
     page.on("dialog", (dialog) => {
-      if ("overriddenType" in dialog.message()) {
+      if (dialog.message().overriddenType) {
         onMessageFromAgent(socket, dialog.message());
       } else {
-        onPageDialog(socket, { dialog });
+        onPageDialogedFromAgent(socket, { page, dialog });
       }
     });
     await page.setViewport({ width, height });
@@ -145,7 +163,9 @@ export const messagePage = async (socket, { id, data: { is, ...message } }) => {
     return;
   }
   try {
-    if (is == "select") {
+    if (is == "dialog") {
+      onPageDialogedFromClient({ page, message });
+    } else if (is == "select") {
       await messageToAgent(page, "agentSelect", message);
     } else if (is == "focus") {
       await messageToAgent(page, "agentFocus", message);

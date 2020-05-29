@@ -63,6 +63,11 @@ const onRemotePageEvented = ({ events }) => {
   content.contentWindow.postMessage({ type: "events", events }, "*");
 };
 
+const onRemotePageDialoged = ({ dialog }) => {
+  const content = document.querySelector(".content");
+  content.contentWindow.postMessage({ type: "dialog", dialog }, "*");
+};
+
 const onRemotePageNavigated = ({ title, url }) => {
   set({ title, url });
 };
@@ -76,6 +81,7 @@ io.on("page/created", onRemotePageCreated);
 io.on("page/rendered", onRemotePageRendered);
 io.on("page/mutated", onRemotePageMutated);
 io.on("page/evented", onRemotePageEvented);
+io.on("page/dialoged", onRemotePageDialoged);
 io.on("page/navigated", onRemotePageNavigated);
 
 create();

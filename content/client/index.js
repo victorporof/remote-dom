@@ -110,6 +110,8 @@ const onMessage = ({ data: { type, ...message } }) => {
     onMutations(message);
   } else if (type == "events") {
     onEvents(message);
+  } else if (type == "dialog") {
+    onDialog(message);
   }
 };
 
@@ -134,6 +136,21 @@ const onEvents = ({ events }) => {
         break;
       }
     }
+  }
+};
+
+const onDialog = ({ dialog }) => {
+  if (dialog.type == "alert") {
+    window.alert(dialog.message);
+    parent.postMessage({ is: "dialog", type: dialog.type }, "*");
+  } else if (dialog.type == "confirm") {
+    const value = window.confirm(dialog.message);
+    parent.postMessage({ is: "dialog", type: dialog.type, value }, "*");
+  } else if (dialog.type == "prompt") {
+    const value = window.prompt(dialog.message);
+    parent.postMessage({ is: "dialog", type: dialog.type, value }, "*");
+  } else if (dialog.type == "beforeunload") {
+    // TODO
   }
 };
 

@@ -191,6 +191,10 @@ const handleRemovedNodes = ({ removed }) => {
       console.error(`No node to remove at id ${id}`);
     } else {
       deregisterNode(id);
+      if (node.savedStyleSheet) {
+        node.savedStyleSheet.remove();
+        node.savedStyleSheet = null;
+      }
       node.remove();
     }
   }
@@ -250,8 +254,29 @@ const updateElement = (el, bakedNode) => {
     el[prop] = bakedNode.properties[prop];
   }
 
-  // Stick the ID on the DOM for easier debugging:
-  el.dataset.remoteId = bakedNode.id;
+  const id = `remote-${bakedNode.id}`;
+  el.id = id;
+
+  const styleRules = bakedNode.styleRules || {};
+  const domStyleRules = [];
+  for (const rule in styleRules) {
+    if (rule == "elementStyles") {
+      domStyleRules.push(`#${id} { ${styleRules[rule]}}`);
+    } else {
+      domStyleRules.push(`#${id}:${rule} { ${styleRules[rule]}}`);
+    }
+  }
+  if (domStyleRules.length) {
+    const oldStyleSheet = el.savedStyleSheet;
+    const newStyleSheet = document.createElement("style");
+    el.savedStyleSheet = newStyleSheet;
+    newStyleSheet.textContent = domStyleRules.join("\n");
+    if (oldStyleSheet) {
+      oldStyleSheet.replaceWith(newStyleSheet);
+    } else {
+      document.head.append(newStyleSheet);
+    }
+  }
 };
 
 const createElementIfNeeded = (bakedNode) => {
@@ -266,6 +291,9 @@ const createElementIfNeeded = (bakedNode) => {
   const el = document.createElement(bakedNode.tag);
   updateElement(el, bakedNode);
   registerNode(bakedNode.id, el);
+
+  // For debugging vnode on hover. Maybe make this a pref of some kind:
+  // el.setAttribute("title", JSON.stringify(bakedNode));
 
   bakedNode.children.map(createElementIfNeeded).forEach(el.appendChild.bind(el));
   return el;

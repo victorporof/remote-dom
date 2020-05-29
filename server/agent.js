@@ -136,7 +136,9 @@ export const messagePage = async (socket, { id, data: { is, ...message } }) => {
     return;
   }
   try {
-    if (is == "focus") {
+    if (is == "select") {
+      await messageToAgent(page, "agentSelect", message);
+    } else if (is == "focus") {
       await messageToAgent(page, "agentFocus", message);
     } else if (is == "change") {
       await messageToAgent(page, "agentChange", message);

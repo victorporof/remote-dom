@@ -26,6 +26,21 @@ const KEY_EVENT_PROPS = [
   "isComposing",
 ];
 
+const onSelectionEvent = (e) => {
+  const selection = window.getSelection();
+  const ranges = [];
+  for (let i = 0; i < selection.rangeCount; i++) {
+    const range = selection.getRangeAt(i);
+    ranges.push({
+      startContainer: $nodesToIds.get(range.startContainer),
+      startOffset: range.startOffset,
+      endContainer: $nodesToIds.get(range.endContainer),
+      endOffset: range.endOffset,
+    });
+  }
+  parent.postMessage({ is: "select", ranges }, "*");
+};
+
 const onFocusEvent = (e) => {
   const target = $nodesToIds.get(e.target);
   const relatedTarget = $nodesToIds.get(e.relatedTarget);
@@ -250,6 +265,7 @@ const buildBakedDOM = function ({ bakedDOM }) {
   document.body.parentNode.replaceChild(newBody, document.body);
 };
 
+document.addEventListener("selectionchange", onSelectionEvent, true);
 document.addEventListener("focusin", onFocusEvent, true);
 document.addEventListener("change", onChangeEvent, true);
 document.addEventListener("submit", onSubmitEvent, true);

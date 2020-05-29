@@ -55,6 +55,32 @@ const onMessage = ({ data: { type, ...message } }) => {
     buildBakedDOM(message);
   } else if (type == "mutations") {
     onMutations(message);
+  } else if (type == "events") {
+    onEvents(message);
+  }
+};
+
+const onEvents = ({ events }) => {
+  for (const event of events) {
+    switch (event.type) {
+      case "focus": {
+        break;
+      }
+
+      case "blur": {
+        break;
+      }
+
+      case "change":
+      case "input": {
+        const bakedNode = event.target;
+        const node = $idsToNodes.get(bakedNode.id);
+        if (node) {
+          updateElement(node, bakedNode);
+        }
+        break;
+      }
+    }
   }
 };
 
@@ -83,7 +109,6 @@ const handleAddedNodes = (target, { added }) => {
         `Missing parent on add (nodeID=${virtualNode.id}, parentID=${virtualNode.parentID}`
       );
     }
-    console.log(parent, createElement(virtualNode))
     // XXX: Pass along sibling to properly order
     parent.append(createElement(virtualNode));
   }
@@ -145,6 +170,12 @@ const updateElement = (el, bakedNode) => {
   for (const attr in bakedNode.attributes) {
     el.setAttribute(attr, bakedNode.attributes[attr]);
   }
+
+  // eslint-disable-next-line guard-for-in
+  for (const prop in bakedNode.properties) {
+    el[prop] = bakedNode.properties[prop];
+  }
+
   // Stick the ID on the DOM for easier debugging:
   el.dataset.remoteId = bakedNode.id;
 };

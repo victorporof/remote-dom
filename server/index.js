@@ -65,6 +65,8 @@ app.get("*", async (req, res) => {
 const onMessageFromAgent = (socket, { overriddenType, data }) => {
   if (overriddenType == "mutations") {
     socket.emit("page/mutated", { mutations: data });
+  } else if (overriddenType == "events") {
+    socket.emit("page/evented", { events: data });
   } else if (overriddenType == "bakedDOM") {
     socket.emit("page/rendered", { bakedDOM: data });
   }

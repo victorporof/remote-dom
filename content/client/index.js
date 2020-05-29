@@ -26,6 +26,12 @@ const KEY_EVENT_PROPS = [
   "isComposing",
 ];
 
+const onFocus = (e) => {
+  const target = $nodesToIds.get(e.target);
+  const relatedTarget = $nodesToIds.get(e.relatedTarget);
+  parent.postMessage({ is: "focus", type: e.type, target, relatedTarget }, "*");
+};
+
 const onSubmit = (e) => {
   // Prevent submit on forms.
   e.preventDefault();
@@ -49,6 +55,7 @@ const onKeyEvent = (e) => {
   const meta = pick(e, KEY_EVENT_PROPS);
   parent.postMessage({ is: "key", type: e.type, target, ...meta }, "*");
 };
+
 const onScrollEvent = (e) => {
   // Scrolling an element in the page
   if (e.target == document) {
@@ -238,6 +245,7 @@ const buildBakedDOM = function ({ bakedDOM }) {
   document.body.parentNode.replaceChild(newBody, document.body);
 };
 
+document.addEventListener("focusin", onFocus, true);
 document.addEventListener("submit", onSubmit, true);
 document.addEventListener("click", onClick, true);
 document.addEventListener("dblclick", onMouseEvent, true);

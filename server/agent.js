@@ -93,7 +93,7 @@ export const createPage = async (socket, { width, height, url }) => {
       }
     });
     await page.setViewport({ width, height });
-    await page.goto(url, { waitUntil: "load" });
+    await page.goto(url, { waitUntil: "domcontentloaded" });
   } catch (e) {
     console.error(e);
     return;
@@ -108,7 +108,7 @@ export const navigatePage = async (socket, { id, url }) => {
     console.error(`No page to navigate with id ${id}`);
     return;
   }
-  await page.goto(url, { waitUntil: "load" });
+  await page.goto(url, { waitUntil: "domcontentloaded" });
 };
 
 export const deletePage = async (socket, { id }) => {

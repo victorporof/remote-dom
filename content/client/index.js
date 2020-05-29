@@ -49,6 +49,32 @@ const onKeyEvent = (e) => {
   const meta = pick(e, KEY_EVENT_PROPS);
   parent.postMessage({ is: "key", type: e.type, target, ...meta }, "*");
 };
+const onScrollEvent = (e) => {
+  // Scrolling an element in the page
+  if (e.target == document) {
+    parent.postMessage(
+      {
+        is: "scroll",
+        type: e.type,
+        target: "document",
+        scrollX: window.scrollX,
+        scrollY: window.scrollY,
+      },
+      "*"
+    );
+  } else if ($nodesToIds.has(e.target)) {
+    parent.postMessage(
+      {
+        is: "scroll",
+        type: e.type,
+        target: $nodesToIds.get(e.target),
+        scrollX: e.target.scrollLeft,
+        scrollY: e.target.scrollTop,
+      },
+      "*"
+    );
+  }
+};
 
 const onMessage = ({ data: { type, ...message } }) => {
   if (type == "bakedDOM") {
@@ -208,13 +234,14 @@ const buildBakedDOM = function ({ bakedDOM }) {
   document.body.parentNode.replaceChild(newBody, document.body);
 };
 
-document.documentElement.addEventListener("submit", onSubmit, true);
-document.documentElement.addEventListener("click", onClick, true);
-document.documentElement.addEventListener("dblclick", onMouseEvent, true);
-document.documentElement.addEventListener("mousedown", onMouseEvent, true);
-document.documentElement.addEventListener("mouseup", onMouseEvent, true);
-document.documentElement.addEventListener("mousemove", onMouseEvent, true);
-document.documentElement.addEventListener("keydown", onKeyEvent, true);
-document.documentElement.addEventListener("keyup", onKeyEvent, true);
+document.addEventListener("submit", onSubmit, true);
+document.addEventListener("click", onClick, true);
+document.addEventListener("dblclick", onMouseEvent, true);
+document.addEventListener("mousedown", onMouseEvent, true);
+document.addEventListener("mouseup", onMouseEvent, true);
+document.addEventListener("mousemove", onMouseEvent, true);
+document.addEventListener("keydown", onKeyEvent, true);
+document.addEventListener("keyup", onKeyEvent, true);
+document.addEventListener("scroll", onScrollEvent, true);
 
 window.addEventListener("message", onMessage);

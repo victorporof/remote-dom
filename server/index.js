@@ -184,6 +184,8 @@ io.on("connection", (socket) => {
         await messageToAgent(page, "agentMouse", message);
       } else if (is == "key") {
         await messageToAgent(page, "agentKey", message);
+      } else if (is == "scroll") {
+        await messageToAgent(page, "agentScroll", message);
       }
     } catch (e) {
       console.error(e);

@@ -1,0 +1,69 @@
+
+<style type='text/css'>
+  [data-count] {
+    color: red;
+  }
+  [data-count*='1'] {
+    background-color: green;
+  }
+  #toofast::after {
+    content: attr(data-toofast);
+  }
+</style>
+
+<h1>Markup Mutations in the Inspector</h1>
+
+<p>
+  Viewing and editing content in the markup view and style inspector while it is changing can be tricky.
+</p>
+
+<h2>Number of seconds since loading: <span> </span></h2>
+<h2 class="changing">Changing attribute</h2>
+
+
+
+<div id="toofast">
+  This has an attribute that changes too fast for the server to keep up.
+  Press this <button>button</button> to toggle changes
+</div>
+
+<script type="text/javascript">
+  var current = 1;
+  var changingH2 = document.querySelector("h2.changing");
+  var interval = setInterval(function() {
+    var foo = 1;
+    document.querySelector("h2 span").childNodes[0].nodeValue = current++;
+    changingH2.setAttribute("data-count", current);
+  }, 1000);
+
+  document.querySelector("#toofast button").onclick = toggleTooFast;
+
+  var toofastRunning = false;
+  function toggleTooFast() {
+    var toofast = 0;
+    clearInterval(window.fastInterval);
+
+    if (!toofastRunning) {
+      window.fastInterval = setInterval(function() {
+        for (var i = 0; i < 750; i++) {
+          document.querySelector("#toofast").setAttribute("data-toofast", toofast++);
+        }
+      }, 750);
+    }
+
+    toofastRunning = !toofastRunning;
+  }
+
+  toggleTooFast();
+
+  changingH2.setAttribute("updated", "in function");
+  setTimeout(function() {
+    changingH2.setAttribute("updated", "in timeout 1");
+  }, 200);
+  setTimeout(function() {
+    changingH2.setAttribute("updated", "in timeout 2");
+  }, 750);
+</script>
+
+</body>
+</html>

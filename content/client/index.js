@@ -26,18 +26,23 @@ const KEY_EVENT_PROPS = [
   "isComposing",
 ];
 
-const onFocus = (e) => {
+const onFocusEvent = (e) => {
   const target = $nodesToIds.get(e.target);
   const relatedTarget = $nodesToIds.get(e.relatedTarget);
   parent.postMessage({ is: "focus", type: e.type, target, relatedTarget }, "*");
 };
 
-const onSubmit = (e) => {
+const onChangeEvent = (e) => {
+  const target = $nodesToIds.get(e.target);
+  parent.postMessage({ is: "change", type: e.type, target, value: e.target.value }, "*");
+};
+
+const onSubmitEvent = (e) => {
   // Prevent submit on forms.
   e.preventDefault();
 };
 
-const onClick = (e) => {
+const onClickEvent = (e) => {
   // Prevent click and enter key on links.
   e.preventDefault();
   onMouseEvent(e);
@@ -245,9 +250,10 @@ const buildBakedDOM = function ({ bakedDOM }) {
   document.body.parentNode.replaceChild(newBody, document.body);
 };
 
-document.addEventListener("focusin", onFocus, true);
-document.addEventListener("submit", onSubmit, true);
-document.addEventListener("click", onClick, true);
+document.addEventListener("focusin", onFocusEvent, true);
+document.addEventListener("change", onChangeEvent, true);
+document.addEventListener("submit", onSubmitEvent, true);
+document.addEventListener("click", onClickEvent, true);
 document.addEventListener("dblclick", onMouseEvent, true);
 document.addEventListener("mousedown", onMouseEvent, true);
 document.addEventListener("mouseup", onMouseEvent, true);

@@ -6,13 +6,13 @@ export const fixUrl = async (url) => {
   try {
     // Attempt to convert the user input into an url. Throws if impossible.
     fixed = normalizeUrl(url, { stripWWW: false });
-    // Certain inputs might be ambiguous: `foo` normalizes to `http://foo`,
-    // which may or may not be a real website.
-    if (!url.includes(".") && !(await isReachable(fixed))) {
-      throw new Error();
-    }
   } catch (e) {
-    fixed = `https://www.google.com/search?q=${url}`;
+    return null;
+  }
+  // Certain inputs might be ambiguous: `foo` normalizes to `http://foo`,
+  // which may or may not be a real website.
+  if (!url.includes(".") && !(await isReachable(fixed))) {
+    return null;
   }
   return fixed;
 };

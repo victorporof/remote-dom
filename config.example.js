@@ -3,11 +3,15 @@
  */
 const config = {
   puppeteer: {},
+  urls: {},
 };
 
 config.puppeteer.executablePath = process.env.EXECUTABLE_PATH || "path/to/firefox";
 config.puppeteer.args = ["--jsconsole"];
 config.puppeteer.headless = true;
 config.puppeteer.dumpio = true;
+
+config.urls.home = "localhost:3001";
+config.urls.search = "https://www.google.com/search?q=";
 
 export default config;

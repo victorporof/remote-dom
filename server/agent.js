@@ -6,7 +6,6 @@ import config from "../config.js";
 
 const openBrowser = async () => {
   const browser = await puppeteer.launch({
-    headless: false,
     product: "firefox",
     headless: config.puppeteer.headless ?? true,
     args: config.puppeteer.args ?? [],

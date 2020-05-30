@@ -2,6 +2,7 @@ import path from "path";
 import url, { URL } from "url";
 
 import * as Utils from "./utils.js";
+import config from "../config.js";
 
 const dir = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -19,11 +20,13 @@ export const favicon = (req, res) => {
 export const index = async (req, res) => {
   const url = req.url.slice(1);
   if (!url) {
-    res.redirect("/localhost:3001");
+    res.redirect(`/${config.urls.home}`);
     return;
   }
   const fixed = await Utils.fixUrl(url);
-  if (url != fixed) {
+  if (!fixed) {
+    res.redirect(`/${config.urls.search}${url}`);
+  } else if (url != fixed) {
     res.redirect(`/${fixed}`);
   } else {
     res.sendFile(path.join(dir, "../client/index.html"));

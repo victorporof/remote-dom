@@ -34,6 +34,10 @@ export class InputEmitters {
     document.addEventListener("mousedown", this._onMouse.bind(this), true);
     document.addEventListener("mouseup", this._onMouse.bind(this), true);
     document.addEventListener("mousemove", this._onMouse.bind(this), true);
+    document.addEventListener("mouseenter", this._onMouse.bind(this), true);
+    document.addEventListener("mouseleave", this._onMouse.bind(this), true);
+    document.addEventListener("mouseover", this._onMouse.bind(this), true);
+    document.addEventListener("mouseout", this._onMouse.bind(this), true);
     document.addEventListener("keydown", this._onKey.bind(this), true);
     document.addEventListener("keyup", this._onKey.bind(this), true);
   }

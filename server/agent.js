@@ -47,15 +47,15 @@ const onPageDialogedFromAgent = (socket, { page, dialog }) => {
 };
 
 const onPageDialogedFromClient = ({ page, message }) => {
-  const target = dialogs.get(page);
+  const dialog = dialogs.get(page);
   if (message.type == "alert") {
-    target.dismiss();
+    dialog.dismiss();
   } else if (message.type == "confirm" && message.value == true) {
-    target.accept();
+    dialog.accept();
   } else if (message.type == "confirm" && message.value == false) {
-    target.dismiss();
+    dialog.dismiss();
   } else if (message.type == "prompt") {
-    target.accept(message.value);
+    dialog.accept(message.value);
   } else if (message.type == "beforeunload") {
     // TODO
   }

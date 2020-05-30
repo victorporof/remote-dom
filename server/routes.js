@@ -14,6 +14,7 @@ export const favicon = (req, res) => {
     res.sendStatus(400);
     return;
   }
+  res.set('Cache-Control', 'no-store');
   res.redirect(`${url.origin}/favicon.ico`);
 };
 

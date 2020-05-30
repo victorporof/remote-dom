@@ -2,38 +2,46 @@ import socketio from "socket.io-client";
 
 let id = null;
 
-const set = ({ title, url }) => {
-  document.title = title;
-  const path = `/${url}`;
-  const currentPath = `${window.location.pathname}${window.location.search}`;
-  if (path !== currentPath && path !== `${currentPath}/`) {
-    history.pushState(null, title, path);
+const getLocation = () => {
+  const title = document.title;
+  const url = `${location.pathname.slice(1)}${location.search}`;
+  return { title, url };
+};
+
+const setLocation = ({ title, url }) => {
+  const current = getLocation();
+  if (title != current.title) {
+    document.title = title;
   }
+  if (url != current.url && url != `${current.url}/`) {
+    history.pushState(null, title, `/${url}`);
+    setFavicon({ url });
+  }
+};
+
+const setFavicon = ({ url }) => {
   const icon = document.querySelector("link[rel=icon]");
   icon.href = `/favicon.ico?url=${url}`;
 };
 
-window.onpopstate = function (event) {
-  // From http://localhost:3000/http://localhost:3001/
-  // get "http://localhost:3001/":
-  const pathname = window.location.pathname.split("/").slice(1).join("/");
-  const url = `${pathname}${window.location.search}`;
-  io.emit("page/navigate", { id, url });
-};
-
 const create = () => {
-  const url = `${location.pathname.slice(1)}${location.search}`;
+  const { url } = getLocation();
   const size = { width: window.innerWidth, height: window.innerHeight };
-  set({ title: url, url });
+  setLocation({ title: url, url });
   io.emit("page/create", { url, ...size });
 };
 
-const onContentResize = () => {
+const onClientPopState = (event) => {
+  const { url } = getLocation();
+  io.emit("page/navigate", { id, url });
+};
+
+const onClientResize = () => {
   const size = { width: window.innerWidth, height: window.innerHeight };
   io.emit("page/resize", { id, ...size });
 };
 
-const onContentUnload = () => {
+const onClientUnload = () => {
   io.emit("page/delete", { id });
 };
 
@@ -53,10 +61,8 @@ const onRemotePageRendered = ({ bakedDOM }) => {
   }
   const content = document.querySelector(".content");
   const spinner = document.querySelector(".spinner");
-  if (bakedDOM) {
-    content.contentWindow.postMessage({ type: "bakedDOM", bakedDOM }, "*");
-    spinner.setAttribute("hidden", "true");
-  }
+  content.contentWindow.postMessage({ type: "bakedDOM", bakedDOM }, "*");
+  spinner.setAttribute("hidden", "true");
 };
 
 const onRemotePageMutated = ({ mutations }) => {
@@ -87,11 +93,12 @@ const onRemotePageDialoged = ({ dialog }) => {
 };
 
 const onRemotePageNavigated = ({ title, url }) => {
-  set({ title, url });
+  setLocation({ title, url });
 };
 
-window.addEventListener("resize", onContentResize);
-window.addEventListener("unload", onContentUnload);
+window.addEventListener("popstate", onClientPopState);
+window.addEventListener("resize", onClientResize);
+window.addEventListener("unload", onClientUnload);
 window.addEventListener("message", onContentMessage);
 
 const io = socketio.connect(`ws://${location.host}`);

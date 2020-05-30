@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      #container {
+        border: 1px solid green;
+        display: flex;
+      }
+      #first,
+      #second,
+      #third {
+        width: 100px;
+        height: 100px;
+        border: 1px solid red;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <span>
+      Removing the container should remove all stylesheets.
+    </span>
+    <br />
+    <button onclick="document.querySelector('#container').remove()">
+      Remove container
+    </button>
+    <button onclick="document.querySelector('#container').textContent = '';">
+      Remove children
+    </button>
+    <div id="container">
+      <div id="first"></div>
+      <div id="second"></div>
+      <div id="third"></div>
+    </div>
+  </body>
+</html>

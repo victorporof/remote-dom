@@ -201,21 +201,27 @@ export class DOMRenderer {
 
   _updateElementStyles(node, { virtualNode }) {
     const styles = [];
+    const pseudoStyles = [];
     for (const [key, value] of Object.entries(virtualNode.styleRules || {})) {
       if (!value) {
         continue;
       }
       if (key == "elementStyles") {
-        styles.push(`#remote-${virtualNode.id} { ${value} }`);
+        styles.push(value);
       } else {
-        styles.push(`#remote-${virtualNode.id}:${key} { ${value} }`);
+        pseudoStyles.push(`#remote-${virtualNode.id}:${key} { ${value} }`);
       }
     }
     if (!styles.length) {
+      node.removeAttribute("style");
+    } else {
+      node.setAttribute("style", styles.join(""));
+    }
+    if (!pseudoStyles.length) {
       this.removeStylesheet({ virtualNode });
     } else {
       const stylesheet = this.addStylesheet({ virtualNode });
-      stylesheet.textContent = styles.join("\n");
+      stylesheet.textContent = pseudoStyles.join("\n");
     }
   }
 }

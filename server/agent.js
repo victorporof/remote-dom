@@ -108,7 +108,12 @@ export const navigatePage = async (socket, { id, url }) => {
     console.error(`No page to navigate with id ${id}`);
     return;
   }
+  try {
   await page.goto(url, { waitUntil: "domcontentloaded" });
+  } catch (e) {
+    console.error(e);
+    return;
+  }
 };
 
 export const deletePage = async (socket, { id }) => {

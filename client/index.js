@@ -15,8 +15,8 @@ const setLocation = ({ title, url }) => {
   }
   if (url != current.url && url != `${current.url}/`) {
     history.pushState(null, title, `/${url}`);
-    setFavicon({ url });
   }
+  setFavicon({ url });
 };
 
 const setFavicon = ({ url }) => {

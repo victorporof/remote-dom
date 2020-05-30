@@ -4,6 +4,7 @@
 const config = {
   puppeteer: {},
   urls: {},
+  logging: {},
 };
 
 config.puppeteer.executablePath = process.env.EXECUTABLE_PATH || "path/to/firefox";
@@ -13,5 +14,7 @@ config.puppeteer.dumpio = true;
 
 config.urls.home = "localhost:3001";
 config.urls.search = "https://www.google.com/search?q=";
+
+config.logging.verbose = false;
 
 export default config;

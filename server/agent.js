@@ -105,11 +105,11 @@ export const createPage = async (socket, { width, height, url }) => {
 export const navigatePage = async (socket, { id, url }) => {
   const page = pages.get(id);
   if (!page) {
-    console.error(`No page to navigate with id ${id}`);
+    console.error(`No page to navigate with id ${id}.`);
     return;
   }
   try {
-  await page.goto(url, { waitUntil: "domcontentloaded" });
+    await page.goto(url, { waitUntil: "domcontentloaded" });
   } catch (e) {
     console.error(e);
     return;
@@ -119,7 +119,7 @@ export const navigatePage = async (socket, { id, url }) => {
 export const deletePage = async (socket, { id }) => {
   const page = pages.get(id);
   if (!page) {
-    console.error(`No page to remove with id ${id}`);
+    console.error(`No page to remove with id ${id}.`);
     return;
   }
   try {
@@ -134,7 +134,7 @@ export const deletePage = async (socket, { id }) => {
 export const renderPage = async (socket, { id }) => {
   const page = pages.get(id);
   if (!page) {
-    console.error(`No page to render with id ${id}`);
+    console.error(`No page to render with id ${id}.`);
     return;
   }
   let bakedDOM = null;
@@ -150,7 +150,7 @@ export const renderPage = async (socket, { id }) => {
 export const resizePage = async (socket, { id, width, height }) => {
   const page = pages.get(id);
   if (!page) {
-    console.error(`No page to resize with id ${id}`);
+    console.error(`No page to resize with id ${id}.`);
     return;
   }
   try {
@@ -164,7 +164,7 @@ export const resizePage = async (socket, { id, width, height }) => {
 export const messagePage = async (socket, { id, data: { is, ...message } }) => {
   const page = pages.get(id);
   if (!page) {
-    console.error(`No page to message with id ${id}`);
+    console.error(`No page to message with id ${id}.`);
     return;
   }
   try {

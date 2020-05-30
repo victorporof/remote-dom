@@ -8,8 +8,9 @@ const openBrowser = async () => {
   const browser = await puppeteer.launch({
     headless: false,
     product: "firefox",
-    args: config.puppeteer.args || [],
-    dumpio: config.puppeteer.dumpio || false,
+    headless: config.puppeteer.headless ?? true,
+    args: config.puppeteer.args ?? [],
+    dumpio: config.puppeteer.dumpio ?? false,
     executablePath: config.puppeteer.executablePath,
   });
 

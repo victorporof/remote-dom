@@ -7,6 +7,7 @@ const config = {
 
 config.puppeteer.executablePath = process.env.EXECUTABLE_PATH || "path/to/firefox";
 config.puppeteer.args = ["--jsconsole"];
+config.puppeteer.headless = true;
 config.puppeteer.dumpio = true;
 
 export default config;

@@ -47,6 +47,10 @@ const onRemotePageCreated = (page) => {
 };
 
 const onRemotePageRendered = ({ bakedDOM }) => {
+  if (!bakedDOM) {
+    console.error("No baked dom received.");
+    return;
+  }
   const content = document.querySelector(".content");
   const spinner = document.querySelector(".spinner");
   if (bakedDOM) {
@@ -56,16 +60,28 @@ const onRemotePageRendered = ({ bakedDOM }) => {
 };
 
 const onRemotePageMutated = ({ mutations }) => {
+  if (!mutations) {
+    console.error("No mutations received.");
+    return;
+  }
   const content = document.querySelector(".content");
   content.contentWindow.postMessage({ type: "mutations", mutations }, "*");
 };
 
 const onRemotePageEvented = ({ events }) => {
+  if (!events) {
+    console.error("No events received.");
+    return;
+  }
   const content = document.querySelector(".content");
   content.contentWindow.postMessage({ type: "events", events }, "*");
 };
 
 const onRemotePageDialoged = ({ dialog }) => {
+  if (!dialog) {
+    console.error("No dialog received.");
+    return;
+  }
   const content = document.querySelector(".content");
   content.contentWindow.postMessage({ type: "dialog", dialog }, "*");
 };

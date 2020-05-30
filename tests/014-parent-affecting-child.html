@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      #container {
+        border: 1px solid green;
+        display: flex;
+      }
+
+      #first,
+      #second,
+      #third {
+        width: 100px;
+        height: 100px;
+        border: 1px solid red;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #container.fill-children > div {
+        background-color: red;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <div id="first"></div>
+      <div id="second"></div>
+      <div id="third"></div>
+    </div>
+    <button>
+      Toggle filled children
+    </button>
+    <script>
+      const button = document.querySelector("button");
+      const container = document.querySelector("#container");
+      button.onclick = () => {
+        if (!container.className) {
+          container.className = "fill-children";
+        } else {
+          container.className = "";
+        }
+      };
+    </script>
+  </body>
+</html>

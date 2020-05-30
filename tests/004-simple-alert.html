@@ -1,18 +1,20 @@
 <!DOCTYPE html>
 <html>
   <body>
-    <span
-      >Note that 'alert' and 'confirm' have a bug in Firefox and Puppeteer where only the
+    <span>
+      Note that 'alert' and 'confirm' have a bug in Firefox and Puppeteer where only the
       first dialog will work. See the stdout for the error. It looks like 'prompt is
-      working fine.</span
-    >
+      working fine.
+    </span>
     <br />
+    <!--
     <button onclick="document.querySelector('div').textContent += alert('What?')">
       Alert something
     </button>
     <button onclick="document.querySelector('div').textContent += confirm('What?')">
       Confirm something
     </button>
+    -->
     <button onclick="document.querySelector('div').textContent += prompt('What?')">
       Prompt something
     </button>

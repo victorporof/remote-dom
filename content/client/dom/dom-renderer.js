@@ -53,7 +53,7 @@ export class DOMRenderer {
     return node;
   }
 
-  addStylesheet({ virtualNode }) {
+  _addStylesheet({ virtualNode }) {
     const node = this._registrar.getNodeFromRemoteID(virtualNode.id);
     if (!node) {
       console.error(`No node to style with id ${virtualNode.id}.`);
@@ -74,13 +74,13 @@ export class DOMRenderer {
       console.error(`No node to remove with id ${virtualNode.id}.`);
       return;
     }
-    this.removeStylesheet({ virtualNode });
-    this.removeDescendantStylesheets({ virtualNode });
+    this._removeStylesheet({ virtualNode });
+    this._removeDescendantStylesheets({ virtualNode });
     node.remove();
     this._registrar.deregisterNode(virtualNode.id);
   }
 
-  removeStylesheet({ virtualNode }) {
+  _removeStylesheet({ virtualNode }) {
     const stylesheet = this._registrar.getStylesheetFromRemoteID(virtualNode.id);
     if (!stylesheet) {
       // Node has no styles.
@@ -90,19 +90,19 @@ export class DOMRenderer {
     this._registrar.deregisterStylesheet(virtualNode.id);
   }
 
-  removeDescendantStylesheets({ virtualNode }) {
+  _removeDescendantStylesheets({ virtualNode }) {
     const node = this._registrar.getNodeFromRemoteID(virtualNode.id);
     if (!node) {
       console.error(`No node to remove stylesheets with id ${virtualNode.id}.`);
       return;
     }
     if (node.nodeType == Node.TEXT_NODE) {
-      // Text nodes never have styles.
+      // Text nodes never have any descendats or any styles.
       return;
     }
     for (const childNode of node.querySelectorAll("*")) {
       const id = parseInt(childNode.id.match(/remote-(.*)/).pop());
-      this.removeStylesheet({ virtualNode: { id } });
+      this._removeStylesheet({ virtualNode: { id } });
     }
   }
 
@@ -218,9 +218,9 @@ export class DOMRenderer {
       node.setAttribute("style", styles.join(""));
     }
     if (!pseudoStyles.length) {
-      this.removeStylesheet({ virtualNode });
+      this._removeStylesheet({ virtualNode });
     } else {
-      const stylesheet = this.addStylesheet({ virtualNode });
+      const stylesheet = this._addStylesheet({ virtualNode });
       stylesheet.textContent = pseudoStyles.join("\n");
     }
   }

@@ -63,12 +63,16 @@ const onPageDialogedFromClient = ({ page, message }) => {
 };
 
 const onMessageFromAgent = (socket, { overriddenType, data }) => {
-  if (overriddenType == "mutations") {
+  if (overriddenType == "bakedDOM") {
+    socket.emit("page/rendered", { bakedDOM: data });
+  } else if (overriddenType == "mutations") {
     socket.emit("page/mutated", { mutations: data });
   } else if (overriddenType == "events") {
     socket.emit("page/evented", { events: data });
-  } else if (overriddenType == "bakedDOM") {
-    socket.emit("page/rendered", { bakedDOM: data });
+  } else if (overriddenType == "rtc:ice-candidate") {
+    socket.emit(`page/streamed/${overriddenType}`, data);
+  } else if (overriddenType == "rtc:offer") {
+    socket.emit(`page/streamed/${overriddenType}`, data);
   }
 };
 
@@ -182,6 +186,10 @@ export const messagePage = async (socket, { id, data: { is, ...message } }) => {
       await messageToAgent(page, "agentKey", message);
     } else if (is == "scroll") {
       await messageToAgent(page, "agentScroll", message);
+    } else if (is == "rtc:ice-candidate") {
+      await messageToAgent(page, "agentRtcIceCandidate", message);
+    } else if (is == "rtc:answer") {
+      await messageToAgent(page, "agentRtcAnswer", message);
     }
   } catch (e) {
     console.error(e);

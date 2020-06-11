@@ -96,6 +96,16 @@ const onRemotePageNavigated = ({ title, url }) => {
   setLocation({ title, url });
 };
 
+const onRemotePageStreamedIceCandidate = ({ id, candidate }) => {
+  const content = document.querySelector(".content");
+  content.contentWindow.postMessage({ type: "rtc:ice-candidate", id, candidate }, "*");
+};
+
+const onRemotePageStreamedOffer = ({ id, offer }) => {
+  const content = document.querySelector(".content");
+  content.contentWindow.postMessage({ type: "rtc:offer", id, offer }, "*");
+};
+
 window.addEventListener("popstate", onClientPopState);
 window.addEventListener("resize", onClientResize);
 window.addEventListener("unload", onClientUnload);
@@ -108,5 +118,7 @@ io.on("page/mutated", onRemotePageMutated);
 io.on("page/evented", onRemotePageEvented);
 io.on("page/dialoged", onRemotePageDialoged);
 io.on("page/navigated", onRemotePageNavigated);
+io.on("page/streamed/rtc:ice-candidate", onRemotePageStreamedIceCandidate);
+io.on("page/streamed/rtc:offer", onRemotePageStreamedOffer);
 
 create();

@@ -10,6 +10,10 @@ export class DOMRenderer {
     return this._registrar.getRemoteIDForNode(node);
   }
 
+  getPeerConnectionFromRemoteID(id) {
+    return this._registrar.getPeerConnectionFromRemoteID(id);
+  }
+
   nukeTree() {
     this.setEmptyHead();
     this.setEmptyBody();
@@ -68,6 +72,15 @@ export class DOMRenderer {
     return stylesheet;
   }
 
+  _addPeerConnection({ virtualNode }) {
+    const node = this._registrar.getNodeFromRemoteID(virtualNode.id);
+    if (!node) {
+      console.error(`No node to stream with id ${virtualNode.id}.`);
+      return null;
+    }
+    return this._createPeerConnectionIfNeeded({ virtualNode });
+  }
+
   removeNode({ virtualNode }) {
     const node = this._registrar.getNodeFromRemoteID(virtualNode.id);
     if (!node) {
@@ -76,6 +89,7 @@ export class DOMRenderer {
     }
     this._removeStylesheet({ virtualNode });
     this._removeDescendantStylesheets({ virtualNode });
+    this._removePeerConnection({ virtualNode });
     node.remove();
     this._registrar.deregisterNode(virtualNode.id);
   }
@@ -106,6 +120,16 @@ export class DOMRenderer {
     }
   }
 
+  _removePeerConnection({ virtualNode }) {
+    const peerConnection = this._registrar.getPeerConnectionFromRemoteID(virtualNode.id);
+    if (!peerConnection) {
+      console.error(`No pc to close with id ${virtualNode.id}.`);
+      return;
+    }
+    peerConnection.close();
+    this._registrar.deregisterPeerConnection(virtualNode.id);
+  }
+
   updateTextNode({ virtualNode }) {
     const node = this._registrar.getNodeFromRemoteID(virtualNode.id);
     if (!node) {
@@ -134,6 +158,9 @@ export class DOMRenderer {
       }
       return node;
     }
+    if (virtualNode.isStreamable) {
+      return this._createStreamedNode({ virtualNode });
+    }
     if (virtualNode.nodeType == Node.TEXT_NODE) {
       return this._createTextNode({ virtualNode });
     }
@@ -153,6 +180,17 @@ export class DOMRenderer {
       return stylesheet;
     }
     return this._createStylesheetNode({ virtualNode });
+  }
+
+  _createPeerConnectionIfNeeded({ virtualNode }) {
+    const peerConnection = this._registrar.getPeerConnectionFromRemoteID(virtualNode.id);
+    if (peerConnection) {
+      if (config.logging.verbose) {
+        console.warn(`Reusing pc with id ${virtualNode.id}.`, virtualNode);
+      }
+      return peerConnection;
+    }
+    return this._createPeerConnection({ virtualNode });
   }
 
   _createTextNode({ virtualNode }) {
@@ -176,6 +214,29 @@ export class DOMRenderer {
     return stylesheet;
   }
 
+  _createPeerConnection({ virtualNode }) {
+    const peerConnection = new RTCPeerConnection(config.rtc);
+    peerConnection.onicecandidate = ({ candidate }) => {
+      const id = virtualNode.id;
+      const info = JSON.parse(JSON.stringify(candidate));
+      parent.postMessage({ is: "rtc:ice-candidate", id, candidate: info }, "*");
+    };
+    this._registrar.registerPeerConnection(virtualNode.id, peerConnection);
+    return peerConnection;
+  }
+
+  _createStreamedNode({ virtualNode }) {
+    const node = document.createElement("video");
+    this._registrar.registerNode(virtualNode.id, node);
+    node.id = `remote-${virtualNode.id}`;
+    node.setAttribute("autoplay", "");
+    node.setAttribute("playsinline", "");
+    this.updateElementNode({ virtualNode });
+    const peerConnection = this._addPeerConnection({ virtualNode });
+    peerConnection.ontrack = ({ streams }) => (node.srcObject = streams[0]);
+    return node;
+  }
+
   _appendElementChildren(node, { virtualNode }) {
     for (const virtualChild of virtualNode.children) {
       node.appendChild(this._createElementIfNeeded({ virtualNode: virtualChild }));
@@ -183,6 +244,9 @@ export class DOMRenderer {
   }
 
   _updateElementAttributes(node, { virtualNode }) {
+    if (virtualNode.isStreamable) {
+      return;
+    }
     // First remove attributes. This could be optimized by doing a diff of the
     // previous virtualNode (if any) and the one passed in here.
     for (const key of Object.values(node.attributes)) {
@@ -194,6 +258,9 @@ export class DOMRenderer {
   }
 
   _updateElementProperties(node, { virtualNode }) {
+    if (virtualNode.isStreamable) {
+      return;
+    }
     for (const [key, value] of Object.entries(virtualNode.properties || {})) {
       node[key] = value;
     }

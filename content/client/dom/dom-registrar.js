@@ -2,6 +2,7 @@ export class DOMRegistrar {
   constructor() {
     this._idsToNodes = new Map();
     this._idsToStyles = new Map();
+    this._idsToPeerConnections = new Map();
     this._nodesToIds = new WeakMap();
   }
 
@@ -22,6 +23,14 @@ export class DOMRegistrar {
     this._idsToStyles.set(id, style);
   }
 
+  registerPeerConnection(id, peerConnection) {
+    if (this._idsToStyles.has(id)) {
+      console.error(`May not overwrite already registered pc id ${id}.`, peerConnection);
+      return;
+    }
+    this._idsToPeerConnections.set(id, peerConnection);
+  }
+
   deregisterNode(id) {
     const node = this._idsToNodes.get(id);
     if (!node) {
@@ -40,6 +49,14 @@ export class DOMRegistrar {
     this._idsToStyles.delete(id);
   }
 
+  deregisterPeerConnection(id) {
+    if (!this._idsToPeerConnections.has(id)) {
+      console.error(`No existing pc with ${id} to deregister.`);
+      return;
+    }
+    this._idsToPeerConnections.delete(id);
+  }
+
   getRemoteIDForNode(node) {
     return this._nodesToIds.get(node);
   }
@@ -50,6 +67,10 @@ export class DOMRegistrar {
 
   getStylesheetFromRemoteID(id) {
     return this._idsToStyles.get(id);
+  }
+
+  getPeerConnectionFromRemoteID(id) {
+    return this._idsToPeerConnections.get(id);
   }
 
   stylesheets() {

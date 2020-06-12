@@ -5,8 +5,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "bundle:client": "webpack client/index.js --output-path dist/client --mode development",
-    "bundle:content:client": "webpack content/client/index.js --output-path dist/content/client --mode development",
+    "bundle:client": "webpack --config webpack.config.cjs client/index.js --output-path dist/client --mode development",
+    "bundle:content:client": "webpack --config webpack.config.cjs content/client/index.js --output-path dist/content/client --mode development",
     "bundle": "yarn bundle:client && yarn bundle:content:client",
     "kill": "lsof -t -i:3000,3001 | xargs kill",
     "serve:ua": "node server/index.js",
@@ -26,7 +26,11 @@
     "socket.io-client": "^2.3.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.10.2",
+    "@babel/plugin-transform-runtime": "^7.10.1",
+    "@babel/preset-env": "^7.10.2",
     "babel-eslint": "^10.1.0",
+    "babel-loader": "^8.1.0",
     "eslint": "^7.0.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^6.11.0",
@@ -35,5 +39,6 @@
     "serve": "^11.3.1",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11"
-  }
+  },
+  "browserslist": "Firefox > 20"
 }

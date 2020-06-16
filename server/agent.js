@@ -87,12 +87,24 @@ const messageToAgent = async (page, messageName, data) => {
   return result[0];
 };
 
-export const createPage = async (socket, { width, height, url }) => {
-  const id = shortid.generate();
-  let page = null;
+export const createPage = async (socket, { width, height, url, id }) => {
+  // Reconnect
+  let page = pages.get(id);
   let current = null;
+  if (page) {
+    console.log(`Reconnecting to ${id}`);
+    current = page.url();
+  } else {
+    id = shortid.generate();
+    try {
+      page = await (await browser).newPage();
+    } catch (e) {
+      console.error(e);
+      return;
+    }
+  }
+
   try {
-    page = await (await browser).newPage();
     page.on("domcontentloaded", () => {
       current = page.url();
       onPageNavigatedFromAgent(socket, { page });
@@ -110,7 +122,9 @@ export const createPage = async (socket, { width, height, url }) => {
       }
     });
     await page.setViewport({ width, height });
-    await page.goto(url, { waitUntil: "domcontentloaded" });
+    if (current !== url) {
+      await page.goto(url, { waitUntil: "domcontentloaded" });
+    }
   } catch (e) {
     console.error(e);
     return;

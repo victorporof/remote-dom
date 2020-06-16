@@ -107,9 +107,15 @@ window.addEventListener("DOMContentLoaded", (event) => {
   favicon.set({ url });
   history.push({ title: url, url });
 
-  io.emit("page/create", { url, ...size });
+  // Try to reuse an existing page. This may not work (if the server has been restarted
+  // or the page has gone away for another reason). That's fine, the server will call
+  // "page/created" either way, with the correct ID so we can update it.
+  const existingID = sessionStorage.getItem("pageID");
+  io.emit("page/create", { url, id: existingID, ...size });
+
   io.once("page/created", (page) => {
     id = page.id;
+    sessionStorage.setItem("pageID", id);
     io.emit("page/render", { id });
   });
 });

@@ -128,7 +128,7 @@ export class DOMRenderer extends EventEmitter {
   _removePeerConnection({ virtualNode }) {
     const peerConnection = this._registrar.getPeerConnectionFromRemoteID(virtualNode.id);
     if (!peerConnection) {
-      console.error(`No pc to close with id ${virtualNode.id}.`);
+      // Node has no peer connection.
       return;
     }
     peerConnection.close();

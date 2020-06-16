@@ -1,8 +1,11 @@
-import { DOMRegistrar } from "./dom-registrar";
-import config from "../../../config";
+import EventEmitter from "events";
 
-export class DOMRenderer {
+import { DOMRegistrar } from "./dom-registrar";
+import config from "../../config";
+
+export class DOMRenderer extends EventEmitter {
   constructor() {
+    super();
     this._registrar = new DOMRegistrar();
   }
 
@@ -15,18 +18,20 @@ export class DOMRenderer {
   }
 
   nukeTree() {
-    this.setEmptyHead();
-    this.setEmptyBody();
+    // The content baked DOM lives in the same document as the client chrome.
+    // Make sure unrelated nodes aren't removed (e.g. chrome scripts or styles).
+    this._resetHead();
+    this._resetBody();
     this._registrar.nuke();
   }
 
-  setEmptyHead() {
+  _resetHead() {
     for (const stylesheet of this._registrar.stylesheets()) {
       stylesheet.remove();
     }
   }
 
-  setEmptyBody() {
+  _resetBody() {
     const newBody = document.createElement("body");
     document.body.parentNode.replaceChild(newBody, document.body);
   }
@@ -219,7 +224,7 @@ export class DOMRenderer {
     peerConnection.onicecandidate = ({ candidate }) => {
       const id = virtualNode.id;
       const info = JSON.parse(JSON.stringify(candidate));
-      parent.postMessage({ is: "rtc:ice-candidate", id, candidate: info }, "*");
+      this.emit("message", { is: "rtc:ice-candidate", id, candidate: info });
     };
     this._registrar.registerPeerConnection(virtualNode.id, peerConnection);
     return peerConnection;

@@ -1,3 +1,4 @@
+import EventEmitter from "events";
 import pick from "lodash/pick";
 
 const MOUSE_EVENT_PROPS = [
@@ -23,8 +24,9 @@ const KEY_EVENT_PROPS = [
   "isComposing",
 ];
 
-export class InputEmitters {
+export class InputEmitters extends EventEmitter {
   constructor(renderer) {
+    super();
     this._renderer = renderer;
   }
 
@@ -47,13 +49,13 @@ export class InputEmitters {
     const target = this._renderer.getRemoteIDForNode(e.target);
     const relatedTarget = this._renderer.getRemoteIDForNode(e.relatedTarget);
     const props = pick(e, MOUSE_EVENT_PROPS);
-    parent.postMessage({ is: "mouse", type, target, relatedTarget, ...props }, "*");
+    this.emit("input", { is: "mouse", type, target, relatedTarget, ...props });
   }
 
   _onKey(e) {
     const type = e.type;
     const target = this._renderer.getRemoteIDForNode(e.target);
     const props = pick(e, KEY_EVENT_PROPS);
-    parent.postMessage({ is: "key", type, target, ...props }, "*");
+    this.emit("input", { is: "key", type, target, ...props });
   }
 }

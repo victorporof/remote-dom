@@ -5,9 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "bundle:client": "webpack --config webpack.config.cjs client/index.js --output-path dist/client --mode development",
-    "bundle:content:client": "webpack --config webpack.config.cjs content/client/index.js --output-path dist/content/client --mode development",
-    "bundle": "yarn bundle:client && yarn bundle:content:client",
+    "bundle": "webpack --config webpack.config.cjs client/index.js --output-path dist/client --mode development",
     "kill": "lsof -t -i:3000,3001 | xargs kill",
     "serve:ua": "node server/index.js",
     "serve:tests": "serve tests -l 3001",
@@ -15,6 +13,7 @@
     "start": "yarn bundle && yarn serve"
   },
   "dependencies": {
+    "events": "^3.1.0",
     "express": "^4.17.1",
     "is-reachable": "^4.0.0",
     "lodash": "^4.17.15",

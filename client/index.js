@@ -1,124 +1,115 @@
 import socketio from "socket.io-client";
 
-let id = null;
+import { History } from "./history";
 
-const getLocation = () => {
-  const title = document.title;
-  const url = `${location.pathname.slice(1)}${location.search}`;
-  return { title, url };
-};
+import { Favicon } from "./chrome/favicon";
+import { Spinner } from "./chrome/spinner";
 
-const setLocation = ({ title, url }) => {
-  const current = getLocation();
-  if (title != current.title) {
-    document.title = title;
-  }
-  if (url != current.url && url != `${current.url}/`) {
-    history.pushState(null, title, `/${url}`);
-  }
-  setFavicon({ url });
-};
+import { DOMRenderer } from "./dom/dom-renderer";
 
-const setFavicon = ({ url }) => {
-  const icon = document.querySelector("link[rel=icon]");
-  icon.href = `/favicon.ico?url=${url}`;
-};
+import { EventPreventers } from "./handlers/local/event-preventers";
+import { InputEmitters } from "./handlers/local/input-emitters";
+import { StateEmitters } from "./handlers/local/state-emitters";
+import { WindowStateEmitters } from "./handlers/local/window-state-emitters.js";
 
-const create = () => {
-  const { url } = getLocation();
+import { DialogBuilders } from "./handlers/remote/dialog-builders";
+import { DOMBuilders } from "./handlers/remote/dom-builders";
+import { RtcReceivers } from "./handlers/remote/rtc-receivers";
+import { StateReceivers } from "./handlers/remote/state-receivers";
+import { WindowStateReceivers } from "./handlers/remote/window-state-receivers";
+
+window.addEventListener("DOMContentLoaded", (event) => {
+  let id = null;
+  const io = socketio.connect(`ws://${location.host}`);
+
+  const spinner = new Spinner();
+  const favicon = new Favicon();
+  const history = new History();
+
+  const renderer = new DOMRenderer();
+
+  const eventPreventers = new EventPreventers();
+  eventPreventers.start();
+
+  const inputEmitters = new InputEmitters(renderer);
+  inputEmitters.start();
+  inputEmitters.on("input", (data) => {
+    io.emit("page/message", { id, data });
+  });
+
+  const stateEmitters = new StateEmitters(renderer);
+  stateEmitters.start();
+  stateEmitters.on("state", (data) => {
+    io.emit("page/message", { id, data });
+  });
+
+  const windowStateEmitters = new WindowStateEmitters(history);
+  windowStateEmitters.start();
+  windowStateEmitters.on("resize", (data) => {
+    io.emit("page/resize", { id, data });
+  });
+  windowStateEmitters.on("popstate", (data) => {
+    spinner.show();
+    io.emit("page/navigate", { id, data });
+  });
+  windowStateEmitters.on("unload", () => {
+    io.emit("page/delete");
+  });
+
+  const dialogBuilders = new DialogBuilders();
+  io.on("page/dialoged", (data) => {
+    dialogBuilders.buildDialog(data);
+  });
+  dialogBuilders.on("input", (data) => {
+    io.emit("page/message", { id, data });
+  });
+
+  const domBuilders = new DOMBuilders(renderer);
+  io.on("page/will-navigate", () => {
+    domBuilders.nukeTree();
+    spinner.show();
+  });
+  io.on("page/rendered", (data) => {
+    spinner.hide();
+    domBuilders.buildBakedDom(data);
+  });
+  io.on("page/mutated", (data) => {
+    domBuilders.applyMutations(data);
+  });
+  domBuilders.on("message", (data) => {
+    io.emit("page/message", { id, data });
+  });
+
+  const rtcReceivers = new RtcReceivers(renderer);
+  io.on("page/streamed/rtc:ice-candidate", (data) => {
+    rtcReceivers.receiveIceCandidate(data);
+  });
+  io.on("page/streamed/rtc:offer", (data) => {
+    rtcReceivers.receiveOffer(data);
+  });
+  rtcReceivers.on("message", (data) => {
+    io.emit("page/message", { id, data });
+  });
+
+  const stateReceivers = new StateReceivers(history, favicon);
+  io.on("page/evented", (data) => {
+    stateReceivers.receiveEvents(data);
+  });
+
+  const windowStateReceivers = new WindowStateReceivers(history, favicon);
+  io.on("page/navigated", (data) => {
+    windowStateReceivers.receiveNavigation(data);
+  });
+
+  const { url } = history.current();
   const size = { width: window.innerWidth, height: window.innerHeight };
-  setLocation({ title: url, url });
+  spinner.show();
+  favicon.set({ url });
+  history.push({ title: url, url });
+
   io.emit("page/create", { url, ...size });
-};
-
-const onClientPopState = (event) => {
-  const { url } = getLocation();
-  io.emit("page/navigate", { id, url });
-};
-
-const onClientResize = () => {
-  const size = { width: window.innerWidth, height: window.innerHeight };
-  io.emit("page/resize", { id, ...size });
-};
-
-const onClientUnload = () => {
-  io.emit("page/delete", { id });
-};
-
-const onContentMessage = ({ data }) => {
-  io.emit("page/message", { id, data });
-};
-
-const onRemotePageCreated = (page) => {
-  id = page.id;
-  io.emit("page/render", { id });
-};
-
-const onRemotePageRendered = ({ bakedDOM }) => {
-  if (!bakedDOM) {
-    console.error("No baked dom received.");
-    return;
-  }
-  const content = document.querySelector(".content");
-  const spinner = document.querySelector(".spinner");
-  content.contentWindow.postMessage({ type: "bakedDOM", bakedDOM }, "*");
-  spinner.setAttribute("hidden", "true");
-};
-
-const onRemotePageMutated = ({ mutations }) => {
-  if (!mutations) {
-    console.error("No mutations received.");
-    return;
-  }
-  const content = document.querySelector(".content");
-  content.contentWindow.postMessage({ type: "mutations", mutations }, "*");
-};
-
-const onRemotePageEvented = ({ events }) => {
-  if (!events) {
-    console.error("No events received.");
-    return;
-  }
-  const content = document.querySelector(".content");
-  content.contentWindow.postMessage({ type: "events", events }, "*");
-};
-
-const onRemotePageDialoged = ({ dialog }) => {
-  if (!dialog) {
-    console.error("No dialog received.");
-    return;
-  }
-  const content = document.querySelector(".content");
-  content.contentWindow.postMessage({ type: "dialog", dialog }, "*");
-};
-
-const onRemotePageNavigated = ({ title, url }) => {
-  setLocation({ title, url });
-};
-
-const onRemotePageStreamedIceCandidate = ({ id, candidate }) => {
-  const content = document.querySelector(".content");
-  content.contentWindow.postMessage({ type: "rtc:ice-candidate", id, candidate }, "*");
-};
-
-const onRemotePageStreamedOffer = ({ id, offer }) => {
-  const content = document.querySelector(".content");
-  content.contentWindow.postMessage({ type: "rtc:offer", id, offer }, "*");
-};
-
-window.addEventListener("popstate", onClientPopState);
-window.addEventListener("resize", onClientResize);
-window.addEventListener("unload", onClientUnload);
-window.addEventListener("message", onContentMessage);
-
-const io = socketio.connect(`ws://${location.host}`);
-io.on("page/created", onRemotePageCreated);
-io.on("page/rendered", onRemotePageRendered);
-io.on("page/mutated", onRemotePageMutated);
-io.on("page/evented", onRemotePageEvented);
-io.on("page/dialoged", onRemotePageDialoged);
-io.on("page/navigated", onRemotePageNavigated);
-io.on("page/streamed/rtc:ice-candidate", onRemotePageStreamedIceCandidate);
-io.on("page/streamed/rtc:offer", onRemotePageStreamedOffer);
-
-create();
+  io.once("page/created", (page) => {
+    id = page.id;
+    io.emit("page/render", { id });
+  });
+});

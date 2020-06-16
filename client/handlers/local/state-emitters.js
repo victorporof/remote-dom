@@ -1,5 +1,8 @@
-export class StateEmitters {
+import EventEmitter from "events";
+
+export class StateEmitters extends EventEmitter {
   constructor(renderer) {
+    super();
     this._renderer = renderer;
   }
 
@@ -21,14 +24,14 @@ export class StateEmitters {
       const endOffset = range.endOffset;
       ranges.push({ startContainer, startOffset, endContainer, endOffset });
     }
-    parent.postMessage({ is: "select", ranges }, "*");
+    this.emit("state", { is: "select", ranges });
   }
 
   _onFocus(e) {
     const type = e.type;
     const target = this._renderer.getRemoteIDForNode(e.target);
     const relatedTarget = this._renderer.getRemoteIDForNode(e.relatedTarget);
-    parent.postMessage({ is: "focus", type, target, relatedTarget }, "*");
+    this.emit("state", { is: "focus", type, target, relatedTarget });
   }
 
   _onChange(e) {
@@ -38,18 +41,18 @@ export class StateEmitters {
     const type = e.type;
     const target = this._renderer.getRemoteIDForNode(e.target);
     const value = e.target.value;
-    parent.postMessage({ is: "change", type, target, value }, "*");
+    this.emit("state", { is: "change", type, target, value });
   }
 
   _onScroll(e) {
     if (e.target == document) {
       const target = "document";
       const pos = { scrollX: window.scrollX, scrollY: window.scrollY };
-      parent.postMessage({ is: "scroll", target, ...pos }, "*");
+      this.emit("state", { is: "scroll", target, ...pos });
     } else {
       const target = this._renderer.getRemoteIDForNode(e.target);
       const pos = { scrollX: e.target.scrollLeft, scrollY: e.target.scrollTop };
-      parent.postMessage({ is: "scroll", target, ...pos }, "*");
+      this.emit("state", { is: "scroll", target, ...pos });
     }
   }
 }

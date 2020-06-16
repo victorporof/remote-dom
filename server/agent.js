@@ -33,6 +33,10 @@ const browser = openBrowser();
 const pages = new Map();
 const dialogs = new WeakMap();
 
+const onPageWillNavigateFromAgent = async (socket, { frame }) => {
+  socket.emit("page/will-navigate");
+};
+
 const onPageNavigatedFromAgent = async (socket, { page }) => {
   const meta = await page.evaluate(() => {
     // eslint-disable-next-line no-undef
@@ -86,9 +90,11 @@ const messageToAgent = async (page, messageName, data) => {
 export const createPage = async (socket, { width, height, url }) => {
   const id = shortid.generate();
   let page = null;
+  let current = null;
   try {
     page = await (await browser).newPage();
     page.on("domcontentloaded", () => {
+      current = page.url();
       onPageNavigatedFromAgent(socket, { page });
     });
     page.on("dialog", (dialog) => {
@@ -96,6 +102,11 @@ export const createPage = async (socket, { width, height, url }) => {
         onMessageFromAgent(socket, dialog.message());
       } else {
         onPageDialogedFromAgent(socket, { page, dialog });
+      }
+    });
+    page.on("framenavigated", (frame) => {
+      if (frame == page.mainFrame() && frame.url() != current) {
+        onPageWillNavigateFromAgent(socket, { frame });
       }
     });
     await page.setViewport({ width, height });
@@ -108,7 +119,7 @@ export const createPage = async (socket, { width, height, url }) => {
   socket.emit("page/created", { id });
 };
 
-export const navigatePage = async (socket, { id, url }) => {
+export const navigatePage = async (socket, { id, data: { url } }) => {
   const page = pages.get(id);
   if (!page) {
     console.error(`No page to navigate with id ${id}.`);
@@ -153,7 +164,7 @@ export const renderPage = async (socket, { id }) => {
   socket.emit("page/rendered", { bakedDOM });
 };
 
-export const resizePage = async (socket, { id, width, height }) => {
+export const resizePage = async (socket, { id, data: { width, height } }) => {
   const page = pages.get(id);
   if (!page) {
     console.error(`No page to resize with id ${id}.`);

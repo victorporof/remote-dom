@@ -1,15 +1,7 @@
-export class DialogBuilders {
-  start() {
-    window.addEventListener("message", this._onMessage.bind(this));
-  }
+import EventEmitter from "events";
 
-  _onMessage({ data: { type, ...message } }) {
-    if (type == "dialog") {
-      this._onDialog(message);
-    }
-  }
-
-  _onDialog({ dialog }) {
+export class DialogBuilders extends EventEmitter {
+  buildDialog({ dialog }) {
     if (dialog.type == "alert") {
       this._onAlert({ dialog });
     } else if (dialog.type == "confirm") {
@@ -23,16 +15,16 @@ export class DialogBuilders {
 
   _onAlert({ dialog }) {
     window.alert(dialog.message);
-    parent.postMessage({ is: "dialog", type: dialog.type }, "*");
+    this.emit("input", { is: "dialog", type: dialog.type });
   }
 
   _onConfirm({ dialog }) {
     const value = window.confirm(dialog.message);
-    parent.postMessage({ is: "dialog", type: dialog.type, value }, "*");
+    this.emit("input", { is: "dialog", type: dialog.type, value });
   }
 
   _onPrompt({ dialog }) {
     const value = window.prompt(dialog.message);
-    parent.postMessage({ is: "dialog", type: dialog.type, value }, "*");
+    this.emit("input", { is: "dialog", type: dialog.type, value });
   }
 }

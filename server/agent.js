@@ -1,7 +1,6 @@
 import puppeteer from "puppeteer";
 import shortid from "shortid";
 
-import * as Scripts from "../content/server/scripts.js";
 import config from "../config.js";
 
 const openBrowser = async () => {
@@ -35,7 +34,10 @@ const pages = new Map();
 const dialogs = new WeakMap();
 
 const onPageNavigatedFromAgent = async (socket, { page }) => {
-  const meta = await page.evaluate(Scripts.getMetadata);
+  const meta = await page.evaluate(() => {
+    // eslint-disable-next-line no-undef
+    return { title: document.title, url: document.location.href };
+  });
   socket.emit("page/navigated", { ...meta });
 };
 

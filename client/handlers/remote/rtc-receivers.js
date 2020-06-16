@@ -1,21 +1,12 @@
-export class RtcReceivers {
+import EventEmitter from "events";
+
+export class RtcReceivers extends EventEmitter {
   constructor(renderer) {
+    super();
     this._renderer = renderer;
   }
 
-  start() {
-    window.addEventListener("message", this._onMessage.bind(this));
-  }
-
-  _onMessage({ data: { type, ...message } }) {
-    if (type == "rtc:ice-candidate") {
-      this._onIceCandidate(message);
-    } else if (type == "rtc:offer") {
-      this._onOffer(message);
-    }
-  }
-
-  _onIceCandidate({ id, candidate }) {
+  receiveIceCandidate({ id, candidate }) {
     if (!candidate) {
       // Null means end-of-candidates notification.
       return;
@@ -24,7 +15,7 @@ export class RtcReceivers {
     peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
   }
 
-  async _onOffer({ id, offer: description }) {
+  async receiveOffer({ id, offer: description }) {
     if (!description) {
       console.error(`Offer contains no session description for id: ${id}.`);
       return;
@@ -34,6 +25,6 @@ export class RtcReceivers {
     await peerConnection.setRemoteDescription(sessionDescription);
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
-    parent.postMessage({ is: "rtc:answer", id, answer }, "*");
+    this.emit("message", { is: "rtc:answer", id, answer });
   }
 }

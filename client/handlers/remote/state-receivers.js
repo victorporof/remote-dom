@@ -1,15 +1,5 @@
 export class StateReceivers {
-  start() {
-    window.addEventListener("message", this._onMessage.bind(this));
-  }
-
-  _onMessage({ data: { type, ...message } }) {
-    if (type == "events") {
-      this._onEvents(message);
-    }
-  }
-
-  _onEvents({ events }) {
+  receiveEvents({ events }) {
     for (const event of events) {
       if (event.type == "focus") {
         this._onFocus({ event });

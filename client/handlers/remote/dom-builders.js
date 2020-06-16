@@ -1,29 +1,24 @@
-import config from "../../../../config";
+import EventEmitter from "events";
 
-export class DOMBuilders {
+import config from "../../../config";
+
+export class DOMBuilders extends EventEmitter {
   constructor(renderer) {
+    super();
     this._renderer = renderer;
+    this._renderer.on("message", (data) => this.emit("message", data));
   }
 
-  start() {
-    window.addEventListener("message", this._onMessage.bind(this));
-  }
-
-  _onMessage({ data: { type, ...message } }) {
-    if (type == "bakedDOM") {
-      this._onBakedDOM(message);
-    } else if (type == "mutations") {
-      this._onMutations(message);
-    }
-  }
-
-  _onBakedDOM({ bakedDOM }) {
+  nukeTree() {
     this._renderer.nukeTree();
-    this._renderer.setBody({ bakedDOM });
     window.scrollTo(0, 0);
   }
 
-  _onMutations({ mutations }) {
+  buildBakedDom({ bakedDOM }) {
+    this._renderer.setBody({ bakedDOM });
+  }
+
+  applyMutations({ mutations }) {
     for (const mutation of mutations) {
       this._handleRemovedNodes(mutation);
       this._handleAddedNodes(mutation);

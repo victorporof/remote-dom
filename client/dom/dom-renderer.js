@@ -22,6 +22,7 @@ export class DOMRenderer extends EventEmitter {
     // Make sure unrelated nodes aren't removed (e.g. chrome scripts or styles).
     this._resetHead();
     this._resetBody();
+    this._closePeerConnections();
     this._registrar.nuke();
   }
 
@@ -34,6 +35,12 @@ export class DOMRenderer extends EventEmitter {
   _resetBody() {
     const newBody = document.createElement("body");
     document.body.parentNode.replaceChild(newBody, document.body);
+  }
+
+  _closePeerConnections() {
+    for (const peerConnection of this._registrar.peerConnections()) {
+      peerConnection.close();
+    }
   }
 
   setBody({ bakedDOM }) {

@@ -77,6 +77,10 @@ export class DOMRegistrar {
     return this._idsToStyles.values();
   }
 
+  peerConnections() {
+    return this._idsToPeerConnections.values();
+  }
+
   nuke() {
     this._idsToNodes = new Map();
     this._idsToStyles = new Map();

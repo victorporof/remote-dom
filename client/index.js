@@ -72,6 +72,9 @@ window.addEventListener("DOMContentLoaded", (event) => {
   io.on("page/rendered", (data) => {
     spinner.hide();
     domBuilders.buildBakedDom(data);
+
+    // Tell a hacked firefox it's time to show the reader button if needed
+    document.dispatchEvent(new CustomEvent("UpdateReaderState"));
   });
   io.on("page/mutated", (data) => {
     domBuilders.applyMutations(data);

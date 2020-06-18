@@ -53,7 +53,7 @@ window.addEventListener("DOMContentLoaded", (event) => {
     io.emit("page/navigate", { id, data });
   });
   windowStateEmitters.on("unload", () => {
-    io.emit("page/delete");
+    io.emit("page/delete", { id });
   });
 
   const dialogBuilders = new DialogBuilders();

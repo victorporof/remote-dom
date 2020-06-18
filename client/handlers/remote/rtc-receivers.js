@@ -20,8 +20,12 @@ export class RtcReceivers extends EventEmitter {
       console.error(`Offer contains no session description for id: ${id}.`);
       return;
     }
-    const sessionDescription = new RTCSessionDescription(description);
     const peerConnection = this._renderer.getPeerConnectionFromRemoteID(id);
+    if (!peerConnection) {
+      console.error(`No existing pc with ${id} to receive offer.`);
+      return;
+    }
+    const sessionDescription = new RTCSessionDescription(description);
     await peerConnection.setRemoteDescription(sessionDescription);
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);

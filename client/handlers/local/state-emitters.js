@@ -9,6 +9,7 @@ export class StateEmitters extends EventEmitter {
   start() {
     document.addEventListener("selectionchange", this._onSelection.bind(this), true);
     document.addEventListener("focusin", this._onFocus.bind(this), true);
+    document.addEventListener("input", this._onInput.bind(this), true);
     document.addEventListener("change", this._onChange.bind(this), true);
     document.addEventListener("scroll", this._onScroll.bind(this), true);
   }
@@ -32,6 +33,13 @@ export class StateEmitters extends EventEmitter {
     const target = this._renderer.getRemoteIDForNode(e.target);
     const relatedTarget = this._renderer.getRemoteIDForNode(e.relatedTarget);
     this.emit("state", { is: "focus", type, target, relatedTarget });
+  }
+
+  _onInput(e) {
+    const type = e.type;
+    const target = this._renderer.getRemoteIDForNode(e.target);
+    const value = e.target.value;
+    this.emit("state", { is: "input", type, target, value });
   }
 
   _onChange(e) {

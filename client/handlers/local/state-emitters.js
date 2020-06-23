@@ -35,9 +35,6 @@ export class StateEmitters extends EventEmitter {
   }
 
   _onChange(e) {
-    if (!(e.target instanceof HTMLSelectElement)) {
-      return;
-    }
     const type = e.type;
     const target = this._renderer.getRemoteIDForNode(e.target);
     const value = e.target.value;

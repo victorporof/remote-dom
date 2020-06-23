@@ -7,9 +7,9 @@ export class WindowStateEmitters extends EventEmitter {
   }
 
   start() {
-    window.addEventListener("resize", this._onResize.bind(this));
-    window.addEventListener("popstate", this._onPopState.bind(this));
-    window.addEventListener("unload", this._onUnload.bind(this));
+    window.addEventListener("resize", this._onResize.bind(this), true);
+    window.addEventListener("popstate", this._onPopState.bind(this), true);
+    window.addEventListener("unload", this._onUnload.bind(this), true);
   }
 
   _onResize() {

@@ -28,7 +28,7 @@ export class DOMRenderer extends EventEmitter {
 
   _resetHead() {
     for (const stylesheet of this._registrar.stylesheets()) {
-      stylesheet.remove();
+      stylesheet.parentNode.removeChild(stylesheet);
     }
   }
 
@@ -102,7 +102,7 @@ export class DOMRenderer extends EventEmitter {
     this._removeStylesheet({ virtualNode });
     this._removeDescendantStylesheets({ virtualNode });
     this._removePeerConnection({ virtualNode });
-    node.remove();
+    node.parentNode.removeChild(node);
     this._registrar.deregisterNode(virtualNode.id);
   }
 
@@ -112,7 +112,7 @@ export class DOMRenderer extends EventEmitter {
       // Node has no styles.
       return;
     }
-    stylesheet.remove();
+    stylesheet.parentNode.removeChild(stylesheet);
     this._registrar.deregisterStylesheet(virtualNode.id);
   }
 

@@ -16,7 +16,7 @@
     "@babel/runtime-corejs3": "^7.10.2",
     "debug-es5": "^4.1.0",
     "events": "^3.1.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "is-reachable": "^4.0.0",
     "lodash": "^4.17.15",
     "morgan": "^1.10.0",
